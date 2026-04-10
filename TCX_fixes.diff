@@ -1,0 +1,67 @@
+--- scripts/export_route_plan_ors_tcx.py
++++ scripts/export_route_plan_ors_tcx.py
+@@ -107,6 +107,24 @@
+             "lat": row["_lat"],
+             "lon": row["_lon"],
+         }
+         for idx, row in enumerate(rows, start=1)
+     ]
+ 
++def get_street_name(step):
++    """Extracts street name from ORS instruction if available."""
++    instruction = step.get("instruction", "")
++    if " on " in instruction:
++        return instruction.split(" on ")[-1].strip()
++    if " onto " in instruction:
++        return instruction.split(" onto ")[-1].strip()
++    return step.get("name", "")
++
+ 
+ def build_course_points(feature, rows):
+     coords = feature["geometry"]["coordinates"]
+@@ -124,6 +142,7 @@
+             "wpt_idx": 0,
+         }
+     )
+ 
++    last_street = ""
+     for seg_idx, segment in enumerate(segments):
+         step_distance = cumulative
++        first_step_added = False
+         for step_idx, step in enumerate(segment.get("steps", []), start=1):
+             if step.get("type") in (10, 11):
+                 step_distance += float(step.get("distance", 0))
+                 continue
+             wpt_idx = step.get("way_points", [0])[0]
++            
++            street_name = get_street_name(step)
++            if street_name:
++                last_street = street_name
++
+             coord = coords[wpt_idx]
+             cps.append(
+                 {
+@@ -136,6 +155,19 @@
+                     "wpt_idx": wpt_idx,
+                 }
+             )
++            first_step_added = True
+             step_distance += float(step.get("distance", 0))
++            
++        if not first_step_added and last_street:
++             # Segment has no action steps, so infer we continue on same road.
++             start_wpt = segment.get("steps", [{"way_points": [0]}])[0].get("way_points", [0])[0]
++             coord = coords[start_wpt]
++             cps.append({
++                    "distance_m": cumulative + 5.0, # Slight buffer from station
++                    "name": f"Leg {seg_idx+1:02d} Step 01",
++                    "notes": f"Continue on {last_street}",
++                    "point_type": "Generic",
++                    "lat": coord[1],
++                    "lon": coord[0],
++                    "wpt_idx": start_wpt,
++             })
++             
+         cumulative += float(segment.get("distance", 0))
+         cps.append(
+             {

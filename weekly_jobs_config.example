@@ -1,0 +1,29 @@
+# Shared weekly jobs config for MoviePull + CaBi + future scripts.
+# Copy to: ~/.weekly_jobs_config
+# Then chmod 600 ~/.weekly_jobs_config
+
+# SMTP credentials (shared)
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="you@gmail.com"
+SMTP_APP_PASSWORD="your_16_char_gmail_app_password"
+SMTP_USE_SSL="false"
+
+# Global mail identity defaults
+EMAIL_FROM="you@gmail.com"
+FROM_NAME_DEFAULT="Weekly Automation"
+
+# Recipient groups
+RECIPIENTS_DEFAULT="you@gmail.com"
+RECIPIENTS_SHARED="you@gmail.com,partner@example.com"
+
+# Job profiles
+JOB_CABI_RECIPIENT_GROUP="default"
+JOB_CABI_FROM_NAME="CaBi Alert"
+JOB_CABI_SUBJECT_PREFIX="Capital Bikeshare"
+
+JOB_MOVIEPULL_RECIPIENT_GROUP="shared"
+JOB_MOVIEPULL_FROM_NAME="MoviePull"
+
+# Optional:
+# CABI_ALERT_DRY_RUN="false"

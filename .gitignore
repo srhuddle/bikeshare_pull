@@ -1,0 +1,26 @@
+.DS_Store
+.RData
+.Rhistory
+.Rproj.user/
+.env.local
+.venv/
+.pw_cabi_profile_py/
+.pw_rwgps_profile/
+
+outputs/
+data/
+
+*.png
+*.html
+
+Archive/
+
+cabi_ride_history_all.csv
+cabi_ride_history_all-JS.csv
+cabi_ride_history_checkpoint.txt
+known_station_inventory.csv
+station_inventory_scoring.csv
+station_inventory_scoring_backup_*.csv
+
+# Keep example/config/docs/code files at repo root
+!outputs/.gitkeep

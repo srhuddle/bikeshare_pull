@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+ "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.scotthuddle.cabi-weekly-alert</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>-lc</string>
+    <string>cd '/Users/scotthuddle/Documents/Bikeshare Pull' && Rscript weekly_station_inventory_alert.R</string>
+  </array>
+
+  <!-- Weekly schedule: Monday 08:00 local time -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Weekday</key>
+    <integer>2</integer>
+    <key>Hour</key>
+    <integer>8</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>WEEKLY_JOBS_CONFIG_PATH</key>
+    <string>/Users/scotthuddle/.weekly_jobs_config</string>
+    <key>CABI_ALERT_DRY_RUN</key>
+    <string>false</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/cabi_weekly_alert.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/cabi_weekly_alert.err.log</string>
+
+  <key>RunAtLoad</key>
+  <false/>
+</dict>
+</plist>
