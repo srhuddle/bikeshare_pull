@@ -22,6 +22,15 @@ This file is a lightweight handoff snapshot for continuing work on another machi
 - Project-local Metro CSV:
   - `data/metro_stations_regional.csv`
 
+## Repo State
+
+- GitHub repo is now initialized and pushed:
+  - `https://github.com/srhuddle/bikeshare_pull`
+- Default branch:
+  - `main`
+- Initial code/docs/config commit:
+  - `0efb555` (`Initial codebase import and ORS routing workflow`)
+
 ## OSRM State
 
 - Docker Desktop installed and working on the source machine
@@ -51,6 +60,9 @@ Note:
   - selected-day route overlay
   - all-days route overlay
   - route summary text including estimated total time and route cost model
+  - route-source switching between:
+    - `Current Best`
+    - `ORS Candidate`
 
 ## Routing Rules Of The Road
 
@@ -130,6 +142,62 @@ Interpretation:
 - The primary optimization target is now explicitly `total_estimated_day_minutes`.
 - The improved run beats the original baseline slightly by reducing commute/access time enough to offset slightly worse biking.
 
+## ORS Candidate Schedule
+
+- Full ORS-backed candidate schedule:
+  - `outputs/route_plan_ors/`
+- Key files:
+  - `outputs/route_plan_ors/station_route_plan.csv`
+  - `outputs/route_plan_ors/day_route_summary.csv`
+  - `outputs/route_plan_ors/total_route_summary.csv`
+  - `outputs/route_plan_ors/baseline_comparison.csv`
+  - `outputs/route_plan_ors/baseline_comparison_summary.json`
+  - `outputs/route_plan_ors/ors_manifest.json`
+
+Top-line ORS totals:
+- `planned_stations = 820`
+- `planned_days = 28`
+- `total_route_distance_mi = 474.46`
+- `total_estimated_bike_minutes = 2788.38`
+- `total_estimated_day_minutes = 3885.51`
+
+Important interpretation:
+- ORS route quality looks better in several previously problematic pockets.
+- ORS and OSRM duration models are not directly comparable, so distance comparisons are more trustworthy than raw minute deltas.
+- Treat `outputs/route_plan_ors/` as the current routing candidate, not yet the frozen best baseline.
+
+## ORS TCX Export State
+
+- Canonical all-days ORS TCX upload set:
+  - `outputs/route_plan_ors_tcx/`
+- Manifest:
+  - `outputs/route_plan_ors_tcx/manifest.json`
+- File count:
+  - `28` canonical `.tcx` files
+
+Canonical upload format:
+- `TCX` only
+- `GPX` is no longer part of the active Ride with GPS workflow
+- reason:
+  - `TCX` is the only format in this repo that reliably carries cues/course points into RWGPS
+  - `GPX` should be treated as retired for active navigation exports
+
+Exporter:
+- `scripts/export_route_plan_ors_tcx.py`
+
+Current validated behavior:
+- station markers are emitted as TCX `CoursePoint`s with notes:
+  - `CaBi station: <station name>`
+- Ride with GPS now surfaces intermediate/final station cues again when the ORS TCX uses:
+  - track forced through station coordinates
+  - cumulative `DistanceMeters` from real geometry
+  - `<Lap>` before `<Track>` / `<CoursePoint>`
+
+Known remaining RWGPS quirk:
+- RWGPS still suppresses a separate kickoff cue at `0.0 mi`
+- it will reliably show the bumped starting `CaBi station:` cue slightly after start
+- so the startup semantics are still imperfect, but intermediate and final station cues are working again
+
 ## Known Remaining Issues
 
 The routing quality is materially better with OSRM, but a few local boundary artifacts may still remain.
@@ -149,6 +217,18 @@ Interpretation:
 - Main top-level inventory files now kept in place:
   - `station_inventory_scoring.csv`
   - `known_station_inventory.csv`
+- One-off route experiments were moved under:
+  - `Archive/route_experiments/scripts/`
+  - `Archive/route_experiments/rwgps/`
+  - `Archive/route_experiments/tcx_variants/`
+- Active `scripts/` now contains only the current workflow scripts:
+  - `build_ors_full_schedule.py`
+  - `export_route_plan_cues.R`
+  - `export_route_plan_ors_tcx.py`
+  - `export_route_plan_tcx.R`
+  - `setup_osrm_server.sh`
+  - `start_osrm_server.sh`
+  - `stop_osrm_server.sh`
 
 ## Good Prompt For Next Codex Session
 

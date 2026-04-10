@@ -13,7 +13,7 @@ from xml.sax.saxutils import escape
 INPUT_ROUTE_PLAN = Path("outputs/route_plan_ors/station_route_plan.csv")
 INPUT_DAY_SUMMARY = Path("outputs/route_plan_ors/day_route_summary.csv")
 OUTPUT_DIR = Path("outputs/route_plan_ors_tcx")
-START_CABI_OFFSET_M = 160.9
+START_CABI_OFFSET_M = 16.1
 
 
 def load_env_local():
@@ -153,7 +153,7 @@ def build_course_points(feature, rows, day_summary=None):
 
     cps.append(
         {
-            "distance_m": 1.0,
+            "distance_m": 0.0,
             "name": "START",
             "notes": f"Go to {rows[0]['station_name']}",
             "point_type": "Danger",
@@ -243,58 +243,9 @@ def build_course_points(feature, rows, day_summary=None):
     return cps
 
 
-def gpx_text(day, rows, feature, course_points):
-    coords = feature["geometry"]["coordinates"]
-    course_name = f"CaBi Day {day:02d}"
-    
-    # Map waypoint indices to course points
-    cp_map = defaultdict(list)
-    for cp in course_points:
-        cp_map[cp["wpt_idx"]].append(cp)
-
-    # Every point in the route is a route point (rtept)
-    # Points with names/desc become both Pins and Cues in RWGPS
-    rtepts = []
-    for idx, coord in enumerate(coords):
-        rtept = f'<rtept lat="{coord[1]:.6f}" lon="{coord[0]:.6f}">'
-        if idx in cp_map:
-            # Take the first cue for this point (usually only one)
-            cp = cp_map[idx][0]
-            rtept += f'<name>{escape(cp["name"])}</name>'
-            rtept += f'<desc>{escape(cp["notes"])}</desc>'
-            if "Station" in cp["name"]:
-                rtept += '<sym>Residence</sym>'
-            
-            # Add RWGPS extensions for better type mapping
-            rtept += '<extensions>'
-            rtept += f'<rwgps:type>{escape(cp["point_type"])}</rwgps:type>'
-            rtept += '</extensions>'
-            
-        rtept += '</rtept>'
-        rtepts.append(rtept)
-
-    return (
-        '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<gpx version="1.1" creator="CaBi Route Planner" '
-        'xmlns="http://www.topografix.com/GPX/1/1" '
-        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
-        'xmlns:rwgps="http://www.ridewithgps.com/gpx/1/0" '
-        'xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd '
-        'http://www.ridewithgps.com/gpx/1/0 http://www.ridewithgps.com/gpx/1/0/gpx.xsd">\n'
-        '  <rte>\n'
-        f'    <name>{escape(course_name)}</name>\n'
-        f"    {''.join(rtepts)}\n"
-        '  </rte>\n'
-        '</gpx>\n'
-    )
-
-
 def tcx_text(day, rows, feature, day_summary=None):
     coords = feature["geometry"]["coordinates"]
     course_points = build_course_points(feature, rows, day_summary=day_summary)
-    
-    # Store course_points for GPX reuse before tcx_text finishes
-    feature["_course_points"] = course_points
 
     for cp in course_points:
         if cp["name"].startswith("Station"):
@@ -399,20 +350,14 @@ def main():
         rows = days[day]
         feature = directions_for_day(key, rows)["features"][0]
         start_name = sanitize_name(rows[0]["station_name"])
-        
-        # Write TCX
+
         tcx_out = OUTPUT_DIR / f"day_{day:02d}_{start_name}.tcx"
         tcx_out.write_text(tcx_text(day, rows, feature, day_summary=day_summaries.get(day)), encoding="utf-8")
-        
-        # Write GPX (using stored course points from tcx_text call)
-        gpx_out = OUTPUT_DIR / f"day_{day:02d}_{start_name}.gpx"
-        gpx_out.write_text(gpx_text(day, rows, feature, feature["_course_points"]), encoding="utf-8")
 
         manifest.append(
             {
                 "day": day,
                 "tcx_file": str(tcx_out),
-                "gpx_file": str(gpx_out),
                 "stations": len(rows),
                 "distance_m": feature["properties"]["summary"]["distance"],
                 "duration_s": feature["properties"]["summary"]["duration"],

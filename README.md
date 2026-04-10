@@ -58,6 +58,14 @@ Primary goals implemented:
   - Builds day-sized geographic clusters, solves each day as an open route, and optionally scores endpoints by Metro proximity.
   - Writes route outputs under `outputs/route_plan/`.
 
+- `scripts/build_ors_full_schedule.py`
+  - Builds the ORS-backed candidate day schedule while preserving existing day membership/start-end anchors.
+
+- `scripts/export_route_plan_ors_tcx.py`
+  - Canonical Ride with GPS export path.
+  - Writes one `TCX` per day under `outputs/route_plan_ors_tcx/`.
+  - Includes turn-by-turn course points and `CaBi station: ...` station cues.
+
 - `weekly_jobs_config.example`
   - Template for shared config at `~/.weekly_jobs_config`.
 
@@ -175,6 +183,36 @@ Route planner outputs:
 - `outputs/route_plan/total_route_summary.csv`
 - `outputs/route_plan/weak_transit_exits.csv`
 - `outputs/route_plan/day_XX_map.html` when map output is enabled
+
+### 6) Build the ORS candidate schedule
+
+```bash
+cd "/Users/scotthuddle/Documents/Bikeshare Pull"
+python3 scripts/build_ors_full_schedule.py
+```
+
+ORS candidate outputs:
+- `outputs/route_plan_ors/station_route_plan.csv`
+- `outputs/route_plan_ors/day_route_summary.csv`
+- `outputs/route_plan_ors/total_route_summary.csv`
+- `outputs/route_plan_ors/baseline_comparison.csv`
+
+### 7) Export Ride with GPS uploads
+
+Canonical upload format is `TCX` only.
+
+```bash
+cd "/Users/scotthuddle/Documents/Bikeshare Pull"
+python3 scripts/export_route_plan_ors_tcx.py
+```
+
+TCX upload outputs:
+- `outputs/route_plan_ors_tcx/day_XX_*.tcx`
+- `outputs/route_plan_ors_tcx/manifest.json`
+
+Important:
+- `TCX` is the only supported upload/export format for Ride with GPS in this repo now.
+- `GPX` is no longer part of the active workflow because it does not carry the cue information needed for turn-by-turn.
 
 When a plan is worth preserving as a benchmark, copy those files into a dated snapshot folder such as:
 - `outputs/route_plan_current_best_YYYY-MM-DD/`
