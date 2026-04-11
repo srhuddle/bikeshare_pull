@@ -1,0 +1,24 @@
+proposal_id,station_name,planning_area,district,lat,lon,source,notes
+ffx_old_2026_01,Heritage Dr & Rectory Dr,Annandale,Mason,38.824832,-77.213155,Fairfax County Mason-Braddock bikeshare materials (Aug. 2024) + ArcGIS geocoder,Geocoder matched Rectory Ln rather than Rectory Dr
+ffx_old_2026_02,Ravensworth Dr & Jayhawk Dr,Annandale,Mason,38.826239,-77.199828,Fairfax County Mason-Braddock bikeshare materials (Aug. 2024) + ArcGIS geocoder,Geocoder matched Jayhawk St
+ffx_old_2026_03,Daniels Ave & Poplar St,Annandale,Mason,38.832413,-77.194115,Fairfax County Mason-Braddock bikeshare materials (Aug. 2024) + ArcGIS geocoder,Intersection geocode
+ffx_old_2026_04,Little River Turnpike & Annandale Rd,Annandale,Mason,38.830613,-77.196736,Fairfax County Mason-Braddock bikeshare materials (Aug. 2024) + ArcGIS geocoder,Intersection geocode
+ffx_old_2026_05,Little River Turnpike & Medford Dr,Annandale,Mason,38.831714,-77.203913,Fairfax County Mason-Braddock bikeshare materials (Aug. 2024) + ArcGIS geocoder,Intersection geocode
+ffx_old_2026_06,Cherry St & Lawndale Dr,Seven Corners,Mason,38.872507,-77.169132,Fairfax County Mason-Braddock bikeshare materials (Aug. 2024) + ArcGIS geocoder,Intersection geocode
+ffx_old_2026_07,Peyton Randolph Dr & Willston Dr,Seven Corners,Mason,38.871547,-77.150399,Fairfax County Mason-Braddock bikeshare materials (Aug. 2024) + ArcGIS geocoder,Intersection geocode
+ffx_old_2026_08,Patrick Henry Dr & Willston Dr,Seven Corners,Mason,38.870810,-77.146988,Fairfax County Mason-Braddock bikeshare materials (Aug. 2024) + ArcGIS geocoder,Intersection geocode
+ffx_old_2026_09,Patrick Henry Dr & Brook Dr,Seven Corners,Mason,38.867222,-77.147692,Fairfax County Mason-Braddock bikeshare materials (Aug. 2024) + ArcGIS geocoder,Intersection geocode
+ffx_old_2026_10,Glen Carlyn Dr & Argyle Dr,Bailey's Crossroads,Mason,38.855150,-77.140503,Fairfax County Mason-Braddock bikeshare materials (Aug. 2024) + ArcGIS geocoder,Intersection geocode
+ffx_old_2026_11,George Mason Dr & Seminary Rd,Bailey's Crossroads,Mason,38.841068,-77.121228,Fairfax County Mason-Braddock bikeshare materials (Aug. 2024) + ArcGIS geocoder,Geocoder returned S George Mason Dr
+ffx_old_2026_12,Carlin Springs Rd & Columbia Pike,Bailey's Crossroads,Mason,38.853092,-77.122046,Fairfax County Mason-Braddock bikeshare materials (Aug. 2024) + ArcGIS geocoder,Intersection geocode
+ffx_old_2026_13,Route 7 & S Jefferson St,Bailey's Crossroads,Mason,38.846415,-77.118809,Fairfax County Mason-Braddock bikeshare materials (Aug. 2024) + ArcGIS geocoder,Intersection geocode
+ffx_old_2026_14,Americana Dr & Americana Pl,Annandale,Braddock,38.822331,-77.221338,Fairfax County Mason-Braddock bikeshare materials (Aug. 2024) + ArcGIS geocoder,Approximate street-centroid geocode; intersection geocoder was ambiguous
+ffx_old_2026_15,Patriot Dr & Inverton Rd,Annandale,Braddock,38.827151,-77.216522,Fairfax County Mason-Braddock bikeshare materials (Aug. 2024) + ArcGIS geocoder,Intersection geocode
+ffx_old_2026_16,Huntington Metro South,Mount Vernon,Mount Vernon,38.794573,-77.071363,Fairfax County Mount Vernon bikeshare materials (Jan. 2024) + ArcGIS geocoder,Approximate south-entrance placement; Fairfax lists this as not yet complete
+ffx_old_2026_17,Belle View Blvd & 10th St,Mount Vernon,Mount Vernon,38.775107,-77.054154,Fairfax County Mount Vernon bikeshare materials (Jan. 2024) + ArcGIS geocoder,Intersection geocode
+ffx_old_2026_18,Belle View Blvd & 13th St,Mount Vernon,Mount Vernon,38.775021,-77.058375,Fairfax County Mount Vernon bikeshare materials (Jan. 2024) + ArcGIS geocoder,Intersection geocode
+ffx_old_2026_19,Wakefield Dr & Potomac Ave,Mount Vernon,Mount Vernon,38.772828,-77.057329,Fairfax County Mount Vernon bikeshare materials (Jan. 2024) + ArcGIS geocoder,Intersection geocode
+ffx_old_2026_20,Mt Vernon Trail & Belle Haven Park,Mount Vernon,Mount Vernon,38.774944,-77.051801,Fairfax County Mount Vernon bikeshare materials (Jan. 2024) + ArcGIS geocoder,Approximate trail-side location near Belle Haven Park
+ffx_old_2026_21,Mt Vernon Trail & Riverside Park,Mount Vernon,Mount Vernon,38.710216,-77.057786,Fairfax County Mount Vernon bikeshare materials (Jan. 2024) + ArcGIS geocoder,Approximate trail-side location near Riverside Park
+ffx_old_2026_22,Mt Vernon Trail & Mount Vernon Estate,Mount Vernon,Mount Vernon,38.713451,-77.074940,Fairfax County Mount Vernon bikeshare materials (Jan. 2024) + ArcGIS geocoder,Approximate trail-side location near Mount Vernon Estate
+ffx_old_2026_23,Fort Hunt Park,Mount Vernon,Mount Vernon,38.716089,-77.047065,Fairfax County Mount Vernon bikeshare materials (Jan. 2024) + ArcGIS geocoder,Approximate park-front location

@@ -20,6 +20,8 @@ history_match_file <- file.path("outputs", "station_inventory_with_history_match
 latest_snapshot_file <- file.path("outputs", "station_inventory_latest.csv")
 route_plan_file <- file.path("outputs", "route_plan", "station_route_plan.csv")
 route_summary_file <- file.path("outputs", "route_plan", "day_route_summary.csv")
+proposed_i66_file <- file.path("data", "fairfax_i66_proposed_stations_2026_04.csv")
+proposed_older_file <- file.path("data", "fairfax_older_unbuilt_proposals_2026_04.csv")
 message("Using inventory file: ", csv_file)
 
 route_source_options <- list(
@@ -207,6 +209,27 @@ load_route_summary <- function(path) {
     mutate(day = suppressWarnings(as.integer(day)))
 }
 
+load_proposed_stations <- function(path) {
+  if (!file.exists(path)) {
+    message("Proposed station overlay file not found: ", path)
+    return(tibble())
+  }
+
+  read_csv(path, show_col_types = FALSE, progress = FALSE) %>%
+    transmute(
+      proposal_id = as.character(proposal_id),
+      station_name = as.character(station_name),
+      presentation_name = if ("presentation_name" %in% names(.)) as.character(presentation_name) else NA_character_,
+      planning_area = if ("planning_area" %in% names(.)) as.character(planning_area) else NA_character_,
+      district = as.character(district),
+      lat = suppressWarnings(as.numeric(lat)),
+      lon = suppressWarnings(as.numeric(lon)),
+      source = as.character(source),
+      notes = as.character(notes)
+    ) %>%
+    filter(!is.na(lat), !is.na(lon), !is.na(station_name), station_name != "")
+}
+
 save_inventory <- function(df, path) {
   write_csv(df, path, na = "")
 }
@@ -241,6 +264,25 @@ add_popup_text <- function(df) {
         visited,
         SIMPLIFY = TRUE,
         USE.NAMES = FALSE
+      )
+    )
+}
+
+add_proposed_popup_text <- function(df) {
+  df %>%
+    mutate(
+      popup_text = paste0(
+        "<b>", htmltools::htmlEscape(station_name), "</b><br/>",
+        "Proposal: <b>Fairfax I-66 corridor</b><br/>",
+        ifelse(
+          is.na(presentation_name) | presentation_name == "" | presentation_name == station_name,
+          "",
+          paste0("Presentation label: ", htmltools::htmlEscape(presentation_name), "<br/>")
+        ),
+        ifelse(is.na(planning_area) | planning_area == "", "", paste0("Area: ", htmltools::htmlEscape(planning_area), "<br/>")),
+        ifelse(is.na(district) | district == "", "", paste0("District: ", htmltools::htmlEscape(district), "<br/>")),
+        ifelse(is.na(notes) | notes == "", "", paste0("<small>", htmltools::htmlEscape(notes), "</small><br/>")),
+        ifelse(is.na(source) | source == "", "", paste0("<small>", htmltools::htmlEscape(source), "</small>"))
       )
     )
 }
@@ -353,7 +395,7 @@ ui <- fluidPage(
       width = 12,
       div(
         class = "small-note",
-        "Tap a station circle to toggle visited: white = not visited, black = visited."
+        "Tap a station circle to toggle visited: white = not visited, black = visited. Proposed Fairfax I-66 stations render separately in red."
       )
     )
   ),
@@ -381,6 +423,8 @@ ui <- fluidPage(
         choices = setNames(route_source_values, route_source_labels),
         selected = route_source_options[[1]]$key
       ),
+      checkboxInput("show_i66_proposed", "Overlay proposed Fairfax I-66 stations", value = TRUE),
+      checkboxInput("show_older_proposed", "Overlay older Fairfax proposals not yet built", value = FALSE),
       checkboxInput("show_route", "Overlay suggested route", value = FALSE),
       selectInput("route_day", "Route day", choices = character(0), selected = NULL),
       textOutput("route_day_txt"),
@@ -398,6 +442,8 @@ server <- function(input, output, session) {
     stations = load_inventory(csv_file),
     route_plan = load_route_plan(route_plan_file),
     route_summary = load_route_summary(route_summary_file),
+    proposed_stations = load_proposed_stations(proposed_i66_file),
+    proposed_older_stations = load_proposed_stations(proposed_older_file),
     route_source_label = route_source_labels[[1]],
     dirty = FALSE
   )
@@ -416,6 +462,16 @@ server <- function(input, output, session) {
     if (input$view_filter == "Unvisited only") df <- df %>% filter(!visited)
     if (input$view_filter == "Visited only") df <- df %>% filter(visited)
     add_popup_text(df)
+  })
+
+  proposed_stations <- reactive({
+    req(rv$proposed_stations)
+    add_proposed_popup_text(rv$proposed_stations)
+  })
+
+  proposed_older_stations <- reactive({
+    req(rv$proposed_older_stations)
+    add_proposed_popup_text(rv$proposed_older_stations)
   })
 
   observe({
@@ -623,6 +679,13 @@ server <- function(input, output, session) {
         labels = c("Not visited", "Visited"),
         opacity = 1,
         title = "Status"
+      ) %>%
+      addLegend(
+        position = "bottomright",
+        colors = c("#D73027", "#B2182B"),
+        labels = c("Proposed Fairfax I-66 station", "Older Fairfax proposal not yet built"),
+        opacity = 1,
+        title = "Overlay"
       )
   })
 
@@ -641,6 +704,60 @@ server <- function(input, output, session) {
         weight = 1.5,
         fillOpacity = 1,
         fillColor = ~ifelse(visited, "#000000", "#FFFFFF"),
+        popup = ~popup_text,
+        label = ~station_name
+      )
+  })
+
+  observe({
+    proxy <- leafletProxy("map") %>%
+      clearGroup("proposed_i66")
+
+    if (!isTRUE(input$show_i66_proposed)) return()
+
+    df <- proposed_stations()
+    if (nrow(df) == 0) return()
+
+    proxy %>%
+      addCircleMarkers(
+        data = df,
+        lng = ~lon,
+        lat = ~lat,
+        group = "proposed_i66",
+        layerId = ~paste0("proposed:", proposal_id),
+        radius = 7,
+        stroke = TRUE,
+        color = "#8B0000",
+        weight = 2,
+        fillOpacity = 0.95,
+        fillColor = "#D73027",
+        popup = ~popup_text,
+        label = ~station_name
+      )
+  })
+
+  observe({
+    proxy <- leafletProxy("map") %>%
+      clearGroup("proposed_older")
+
+    if (!isTRUE(input$show_older_proposed)) return()
+
+    df <- proposed_older_stations()
+    if (nrow(df) == 0) return()
+
+    proxy %>%
+      addCircleMarkers(
+        data = df,
+        lng = ~lon,
+        lat = ~lat,
+        group = "proposed_older",
+        layerId = ~paste0("older:", proposal_id),
+        radius = 7,
+        stroke = TRUE,
+        color = "#6A1B1A",
+        weight = 2,
+        fillOpacity = 0.85,
+        fillColor = "#B2182B",
         popup = ~popup_text,
         label = ~station_name
       )

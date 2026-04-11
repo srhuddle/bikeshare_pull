@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 2026-04-11
+
+### Added
+- `data/fairfax_i66_proposed_stations_2026_04.csv` for the Fairfax April 2026 I-66 corridor proposal overlay.
+- `data/fairfax_older_unbuilt_proposals_2026_04.csv` for older Fairfax proposal areas that are not yet built.
+- `references/fairfax_bikeshare_proposals.md` documenting source lineage and ingestion notes for both proposal datasets.
+
+### Changed
+- `cabi_visit_map_app.R` now supports separate overlays for:
+  - Fairfax I-66 proposal stations
+  - older Fairfax proposals not yet built
+- `README.md` and `CURRENT_STATUS.md` now point to the stored Fairfax proposal datasets and reference document.
+
 ## 2026-03-01
 
 ### Added

@@ -1,0 +1,15 @@
+proposal_id,station_name,presentation_name,district,lat,lon,source,notes
+ffx_i66_2026_01,Legato Rd & Dixie Hill Rd,Legato Rd & Dixie Hill Rd,Braddock,38.852851,-77.364049,Fairfax County I-66 Corridor public-input KMZ (April 2026),Proposed station
+ffx_i66_2026_02,Monument Garage,Monument Drive Transit Center,Braddock,38.858382,-77.360286,Fairfax County I-66 Corridor public-input KMZ (April 2026),KMZ label differs slightly from presentation title
+ffx_i66_2026_03,Government Center Pkwy & Ridge Top Rd,Government Center Pkwy & Ridge Top Rd,Braddock,38.853033,-77.341271,Fairfax County I-66 Corridor public-input KMZ (April 2026),Proposed station
+ffx_i66_2026_04,Government Center Pkwy & Pennino Building,Fairfax County Government Center,Braddock,38.855556,-77.361303,Fairfax County I-66 Corridor public-input KMZ (April 2026),KMZ label differs slightly from presentation title
+ffx_i66_2026_05,Chain Bridge Rd & Viera Ln,Chain Bridge Rd & Viera Ln,Providence,38.865091,-77.307278,Fairfax County I-66 Corridor public-input KMZ (April 2026),Proposed station
+ffx_i66_2026_06,66 Parallel Trail & Bushman Dr,Bushman Dr & 66 Parallel Trail,Providence,38.871855,-77.295397,Fairfax County I-66 Corridor public-input KMZ (April 2026),Proposed station
+ffx_i66_2026_07,Blake Ln & Platten Dr,Blake Ln & Platten Dr,Providence,38.875948,-77.287731,Fairfax County I-66 Corridor public-input KMZ (April 2026),Proposed station
+ffx_i66_2026_08,Vienna Metro North,Vienna Metro North,Providence,38.878478,-77.271895,Fairfax County I-66 Corridor public-input KMZ (April 2026),Proposed station
+ffx_i66_2026_09,Route 29 & Nutley St,Route 29 & Nutley St,Providence,38.872237,-77.260535,Fairfax County I-66 Corridor public-input KMZ (April 2026),Public-input map label differs from FFXnow article wording
+ffx_i66_2026_10,Gallows Rd & Strawberry Ln,Gallows Rd & Strawberry Ln,Providence,38.872283,-77.227506,Fairfax County I-66 Corridor public-input KMZ (April 2026),Proposed station
+ffx_i66_2026_11,Gallows Rd & Providence Forest Dr,Gallows Rd & Providence Forest Dr,Providence,38.876880,-77.225953,Fairfax County I-66 Corridor public-input KMZ (April 2026),Proposed station
+ffx_i66_2026_12,Gallows Rd & Electric Ave,Gallows Rd & Electric Ave,Providence,38.898064,-77.226210,Fairfax County I-66 Corridor public-input KMZ (April 2026),Proposed station
+ffx_i66_2026_13,Route 29 & Hollywood Rd,Route 29 & Hollywood Rd,Providence,38.875174,-77.207280,Fairfax County I-66 Corridor public-input KMZ (April 2026),Proposed station
+ffx_i66_2026_14,Legato Rd & Halsted St (FCDOT),Legato Rd & Halstead St (FCDOT),Springfield,38.865174,-77.364146,Fairfax County I-66 Corridor public-input KMZ (April 2026),KMZ uses Halsted spelling while presentation uses Halstead

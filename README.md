@@ -25,6 +25,9 @@ Primary goals implemented:
   - Uses `station_inventory_scoring.csv` as primary editable file.
   - Overlays `visited_by_history` from `outputs/station_inventory_with_history_match.csv` if present.
   - Can overlay a suggested route by selected day when route-planner outputs exist under `outputs/route_plan/`.
+  - Can also overlay separate Fairfax proposal datasets for:
+    - April 2026 I-66 corridor proposals
+    - older Fairfax proposals not yet built
 
 - `pull_cabi_history_playwright.R`
   - Playwright-based scraper for ride-history extraction (checkpointed).
@@ -81,6 +84,11 @@ Primary goals implemented:
 - `cabi_ride_history_checkpoint.txt` (resume state for Playwright scraper)
 
 Generated analysis outputs are written under `outputs/`.
+
+Additional proposal-reference inputs live under:
+- `data/fairfax_i66_proposed_stations_2026_04.csv`
+- `data/fairfax_older_unbuilt_proposals_2026_04.csv`
+- `references/fairfax_bikeshare_proposals.md`
 
 ## Directory Cleanup Policy
 
