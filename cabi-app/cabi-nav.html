@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CaBi Navigator</title>
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""
+    >
     <style>
         * {
             margin: 0;
@@ -359,6 +365,41 @@
             color: var(--text-dim);
             font-size: 14px;
         }
+
+        .map-panel {
+            padding: 0 20px 20px;
+            background: linear-gradient(180deg, var(--bg) 0%, var(--surface) 100%);
+        }
+
+        .map-card {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            background: #111111;
+        }
+
+        .map-title {
+            padding: 12px 14px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.4px;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        #routeMap {
+            height: 300px;
+            width: 100%;
+        }
+
+        .map-note {
+            padding: 10px 14px 12px;
+            font-size: 12px;
+            color: var(--text-dim);
+            border-top: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
+        }
     </style>
 </head>
 <body>
@@ -446,6 +487,14 @@
             </div>
         </div>
 
+        <div class="map-panel">
+            <div class="map-card">
+                <div class="map-title">Route Map</div>
+                <div id="routeMap"></div>
+                <div class="map-note">Filled dots = completed stations. Red dot = current target. Blue dot = your current position.</div>
+            </div>
+        </div>
+
         <div class="actions">
             <button class="btn btn-primary" id="dockedBtn">
                 ✓ DOCKED AT STATION
@@ -461,6 +510,11 @@
 
     <div class="status-message" id="statusMessage"></div>
 
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+    ></script>
     <script>
         // State
         let route = [];
@@ -480,6 +534,11 @@
         let announcedCuePreviewIds = new Set();
         let announcedCueNowIds = new Set();
         let lastOffRouteWarningAt = 0;
+        let map = null;
+        let routeLine = null;
+        let stationMarkers = [];
+        let userMarker = null;
+        let hasFitMap = false;
 
         const SAMPLE_ROUTES = {
             dupontMicro: {
@@ -640,6 +699,132 @@
             return nearest;
         }
 
+        function ensureMap() {
+            if (map || typeof L === 'undefined') {
+                return;
+            }
+
+            map = L.map('routeMap', {
+                zoomControl: true,
+                attributionControl: true
+            }).setView([38.909858, -77.038566], 14);
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                subdomains: 'abcd',
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+            }).addTo(map);
+        }
+
+        function stationStyle(index) {
+            if (index < currentStationIndex) {
+                return {
+                    color: '#1d4f2d',
+                    fillColor: '#2e7d32',
+                    fillOpacity: 1,
+                    radius: 7,
+                    weight: 2
+                };
+            }
+            if (index === currentStationIndex) {
+                return {
+                    color: '#7f1717',
+                    fillColor: '#d32f2f',
+                    fillOpacity: 1,
+                    radius: 8,
+                    weight: 2
+                };
+            }
+            return {
+                color: '#d8d8d8',
+                fillColor: '#1a1a1a',
+                fillOpacity: 0.9,
+                radius: 6,
+                weight: 2
+            };
+        }
+
+        function updateUserMarker() {
+            if (!map) {
+                return;
+            }
+
+            if (!userPosition) {
+                return;
+            }
+
+            if (!userMarker) {
+                userMarker = L.circleMarker([userPosition.lat, userPosition.lng], {
+                    color: '#0f274f',
+                    fillColor: '#3ea3ff',
+                    fillOpacity: 1,
+                    radius: 7,
+                    weight: 2
+                }).addTo(map);
+            } else {
+                userMarker.setLatLng([userPosition.lat, userPosition.lng]);
+            }
+        }
+
+        function updateStationMarkerStyles() {
+            stationMarkers.forEach((marker, index) => {
+                marker.setStyle(stationStyle(index));
+            });
+        }
+
+        function refreshMap(forceFit = false) {
+            if (!map) {
+                return;
+            }
+
+            if (!routeLine) {
+                if (routeTrack && routeTrack.length > 1) {
+                    routeLine = L.polyline(
+                        routeTrack.map(point => [point.lat, point.lng]),
+                        {
+                            color: '#31a6b6',
+                            weight: 4,
+                            opacity: 0.7
+                        }
+                    ).addTo(map);
+                } else if (route.length > 1) {
+                    routeLine = L.polyline(
+                        route.map(point => [point.lat, point.lng]),
+                        {
+                            color: '#31a6b6',
+                            weight: 3,
+                            opacity: 0.6,
+                            dashArray: '6 6'
+                        }
+                    ).addTo(map);
+                }
+            }
+
+            if (stationMarkers.length !== route.length) {
+                stationMarkers.forEach(marker => marker.remove());
+                stationMarkers = [];
+                route.forEach((station, index) => {
+                    const marker = L.circleMarker([station.lat, station.lng], stationStyle(index))
+                        .bindTooltip(station.name, { direction: 'top' })
+                        .addTo(map);
+                    stationMarkers.push(marker);
+                });
+            } else {
+                updateStationMarkerStyles();
+            }
+
+            if ((forceFit || !hasFitMap) && route.length > 0) {
+                const bounds = L.latLngBounds(route.map(point => [point.lat, point.lng]));
+                if (userPosition) {
+                    bounds.extend([userPosition.lat, userPosition.lng]);
+                }
+                map.fitBounds(bounds.pad(0.12));
+                hasFitMap = true;
+            }
+
+            updateUserMarker();
+        }
+
         // Show status message
         function showStatus(message, duration = 2000) {
             const statusEl = document.getElementById('statusMessage');
@@ -734,12 +919,15 @@
                 hasAnnounced = false;
                 lastDistance = Infinity;
                 lastOffRouteWarningAt = 0;
+                hasFitMap = false;
                 document.getElementById('totalStations').textContent = route.length;
                 document.querySelector('.route-title').textContent = routeName;
 
                 // Hide setup, show nav
                 document.getElementById('setupScreen').style.display = 'none';
                 document.getElementById('navScreen').style.display = 'flex';
+                ensureMap();
+                refreshMap(true);
 
                 // Request GPS
                 if ('geolocation' in navigator) {
@@ -769,6 +957,7 @@
             };
 
             document.getElementById('gpsStatus').classList.remove('inactive');
+            updateUserMarker();
             updateDisplay();
         }
 
@@ -908,6 +1097,7 @@
                     }
                 }, 3000);
             } else {
+                refreshMap(false);
                 updateDisplay();
                 setTimeout(() => {
                     const nextStation = route[currentStationIndex];
@@ -940,6 +1130,7 @@
                 speak('Route complete');
                 showStatus('Route Complete', 3000);
             } else {
+                refreshMap(false);
                 updateDisplay();
             }
         }
