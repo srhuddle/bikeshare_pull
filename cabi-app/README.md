@@ -28,7 +28,7 @@ A single-file web app that runs in your phone's browser with:
 1. Create your route as JSON (list of CaBi stations with coordinates)
 2. Load the HTML file in your phone's browser
 3. Paste route JSON and configure announce distance
-4. Grant GPS permission and start
+4. Load the route, then tap Start to begin guidance to the first station
 
 Demo included in this repo:
 - `Dupont micro demo - 17th & P to Corcoran to 18th & New Hampshire`

@@ -407,7 +407,7 @@
     <div id="setupScreen" class="setup-screen container">
         <h1>CaBi Navigator</h1>
         <div class="version-badge">Test Build 2026-04-13 B</div>
-        <p>Load your route as JSON and start navigating with audio cues.</p>
+        <p>Load your route as JSON, review the first stop, then tap Start to begin live guidance.</p>
 
         <div class="settings-group">
             <label>Demo Route Preset</label>
@@ -420,9 +420,7 @@
             <div class="helper-text">Loads either a built-in micro test route or a real exported day route with TCX-derived cue points.</div>
         </div>
 
-        <button class="btn btn-secondary" id="loadDemoRouteBtn">Load Demo Route</button>
-
-        <div class="settings-group">
+        <div class="settings-group" style="display: none;">
             <label>Route Data (JSON)</label>
             <textarea id="routeInput">{
   "name": "Dupont micro demo - 17th & P to Corcoran to 18th & New Hampshire",
@@ -449,7 +447,7 @@
             <input type="number" id="announceDistance" value="50" min="10" max="200">
         </div>
 
-        <button class="btn btn-primary" id="startNavigationBtn">Start Navigation</button>
+        <button class="btn btn-primary" id="startNavigationBtn">Load Route</button>
     </div>
 
     <!-- Navigation Screen -->
@@ -496,6 +494,9 @@
         </div>
 
         <div class="actions">
+            <button class="btn btn-primary" id="beginRouteBtn">
+                Start Route
+            </button>
             <button class="btn btn-primary" id="dockedBtn">
                 ✓ DOCKED AT STATION
             </button>
@@ -534,11 +535,18 @@
         let announcedCuePreviewIds = new Set();
         let announcedCueNowIds = new Set();
         let lastOffRouteWarningAt = 0;
+        let isRecalculating = false;
+        let lastRejoinAnnouncementAt = 0;
+        let lastDirectGuidanceAt = 0;
         let map = null;
         let routeLine = null;
         let stationMarkers = [];
         let userMarker = null;
         let hasFitMap = false;
+        let navigationStarted = false;
+        let initialStartPromptSpoken = false;
+        const rejoinThreshold = 30; // meters
+        const directGuidanceIntervalMs = 12000;
 
         const SAMPLE_ROUTES = {
             dupontMicro: {
@@ -699,6 +707,29 @@
             return nearest;
         }
 
+        function getNearestCueByDistance(cues) {
+            if (!userPosition || !Array.isArray(cues) || cues.length === 0) {
+                return null;
+            }
+
+            let nearest = null;
+            for (const cue of cues) {
+                if (isStationCue(cue) || announcedCueNowIds.has(cue.id)) {
+                    continue;
+                }
+                const distance = getDistance(
+                    userPosition.lat,
+                    userPosition.lng,
+                    cue.lat,
+                    cue.lng
+                );
+                if (!nearest || distance < nearest.distance) {
+                    nearest = { cue, distance };
+                }
+            }
+            return nearest;
+        }
+
         function ensureMap() {
             if (map || typeof L === 'undefined') {
                 return;
@@ -833,6 +864,51 @@
             setTimeout(() => statusEl.classList.remove('show'), duration);
         }
 
+        function updateActionButtons() {
+            const beginRouteBtn = document.getElementById('beginRouteBtn');
+            const dockedBtn = document.getElementById('dockedBtn');
+            const skipStationBtn = document.getElementById('skipStationBtn');
+            const routeIsActive = navigationStarted && currentStationIndex < route.length;
+
+            beginRouteBtn.style.display = navigationStarted || currentStationIndex >= route.length ? 'none' : 'block';
+            dockedBtn.disabled = !routeIsActive;
+            skipStationBtn.disabled = !routeIsActive;
+        }
+
+        function speakInitialStartPrompt() {
+            if (!navigationStarted || initialStartPromptSpoken || currentStationIndex >= route.length) {
+                return;
+            }
+
+            const firstStation = route[currentStationIndex];
+            if (!firstStation) {
+                return;
+            }
+
+            if (!userPosition) {
+                showStatus('Starting route. Waiting for GPS lock...', 2500);
+                return;
+            }
+
+            const distance = Math.round(getDistance(
+                userPosition.lat,
+                userPosition.lng,
+                firstStation.lat,
+                firstStation.lng
+            ));
+            const bearing = getBearing(
+                userPosition.lat,
+                userPosition.lng,
+                firstStation.lat,
+                firstStation.lng
+            );
+            const direction = getDirection(bearing);
+
+            speak(`Route started. First station: ${firstStation.name}. ${distance} meters ${direction}.`);
+            showStatus(`Start toward ${firstStation.name}`, 2500);
+            initialStartPromptSpoken = true;
+        }
+
         async function loadDemoRoute(silent = false) {
             const key = document.getElementById('demoRouteSelect').value;
             if (!key || !SAMPLE_ROUTES[key]) {
@@ -919,7 +995,12 @@
                 hasAnnounced = false;
                 lastDistance = Infinity;
                 lastOffRouteWarningAt = 0;
+                lastRejoinAnnouncementAt = 0;
+                lastDirectGuidanceAt = 0;
+                isRecalculating = false;
                 hasFitMap = false;
+                navigationStarted = false;
+                initialStartPromptSpoken = false;
                 document.getElementById('totalStations').textContent = route.length;
                 document.querySelector('.route-title').textContent = routeName;
 
@@ -928,6 +1009,7 @@
                 document.getElementById('navScreen').style.display = 'flex';
                 ensureMap();
                 refreshMap(true);
+                updateActionButtons();
 
                 // Request GPS
                 if ('geolocation' in navigator) {
@@ -959,6 +1041,7 @@
             document.getElementById('gpsStatus').classList.remove('inactive');
             updateUserMarker();
             updateDisplay();
+            speakInitialStartPrompt();
         }
 
         function onPositionError(error) {
@@ -969,7 +1052,19 @@
 
         function getActiveCue() {
             const cues = routeCuesByTarget[currentStationIndex] || [];
+            if (!userPosition) {
+                return null;
+            }
+
             const progress = getTrackProgress();
+            if (progress && progress.offRouteDistance > offRouteThreshold) {
+                const nearestCue = getNearestCueByDistance(cues);
+                if (nearestCue && nearestCue.distance <= cuePreviewDistance * 1.5) {
+                    return nearestCue.cue;
+                }
+                return null;
+            }
+
             for (const cue of cues) {
                 if (isStationCue(cue)) {
                     continue;
@@ -992,47 +1087,73 @@
             return null;
         }
 
+        function speakDirectGuidance(station, distance, direction) {
+            const now = Date.now();
+            if (now - lastDirectGuidanceAt < directGuidanceIntervalMs) {
+                return;
+            }
+
+            speak(`Recalculating. ${station.name} is ${distance} meters ${direction}. Head ${direction}.`);
+            showStatus(`Recalculating toward ${station.name}`, 3000);
+            lastDirectGuidanceAt = now;
+        }
+
         // Update display
         function updateDisplay() {
-            if (!userPosition || currentStationIndex >= route.length) return;
+            if (currentStationIndex >= route.length) return;
 
             const station = route[currentStationIndex];
-            const distance = Math.round(getDistance(
+            const hasGps = Boolean(userPosition);
+            const distance = hasGps ? Math.round(getDistance(
                 userPosition.lat,
                 userPosition.lng,
                 station.lat,
                 station.lng
-            ));
+            )) : null;
 
-            const bearing = getBearing(
+            const bearing = hasGps ? getBearing(
                 userPosition.lat,
                 userPosition.lng,
                 station.lat,
                 station.lng
-            );
-            const direction = getDirection(bearing);
-            const progress = getTrackProgress();
+            ) : null;
+            const direction = hasGps ? getDirection(bearing) : 'ahead';
+            const progress = navigationStarted ? getTrackProgress() : null;
 
             // Update UI
             document.getElementById('stationName').textContent = station.name;
-            document.getElementById('distance').textContent = distance;
+            document.getElementById('distance').textContent = hasGps ? distance : '--';
             document.getElementById('currentIndex').textContent = currentStationIndex + 1;
             document.getElementById('completedCount').textContent = completedStations;
-            document.getElementById('directionHint').textContent = 
-                `Station ${direction}`;
+            document.getElementById('stationStatus').textContent = navigationStarted ? 'NAVIGATING TO' : 'READY TO START';
+            document.getElementById('directionHint').textContent =
+                navigationStarted
+                    ? `Station ${direction}`
+                    : (hasGps
+                        ? `Tap Start. First station is ${distance} m ${direction}.`
+                        : 'Waiting for GPS so Start can guide you to station 1.');
             document.getElementById('directionHint').style.display = 'block';
 
             const activeCue = getActiveCue();
             const cuePanel = document.getElementById('cuePanel');
+            if (!navigationStarted) {
+                cuePanel.style.display = 'none';
+                updateActionButtons();
+                refreshMap(false);
+                return;
+            }
+
             if (activeCue) {
-                const cueDistance = Math.round(progress
-                    ? Math.max(0, activeCue.distance_m - progress.progressDistance)
-                    : getDistance(
-                        userPosition.lat,
-                        userPosition.lng,
-                        activeCue.lat,
-                        activeCue.lng
-                    ));
+                const cueDistance = Math.round(
+                    progress && progress.offRouteDistance <= offRouteThreshold
+                        ? Math.max(0, activeCue.distance_m - progress.progressDistance)
+                        : getDistance(
+                            userPosition.lat,
+                            userPosition.lng,
+                            activeCue.lat,
+                            activeCue.lng
+                        )
+                );
                 document.getElementById('cueText').textContent = activeCue.text;
                 document.getElementById('cueDistance').textContent = `${cueDistance} m away`;
                 cuePanel.style.display = 'block';
@@ -1050,15 +1171,25 @@
 
             if (progress && progress.offRouteDistance > offRouteThreshold) {
                 const now = Date.now();
-                if (now - lastOffRouteWarningAt > 15000) {
-                    speak(`Off route by ${Math.round(progress.offRouteDistance)} meters. Head ${getDirection(getBearing(userPosition.lat, userPosition.lng, progress.lat, progress.lng))} to rejoin the planned route.`);
-                    showStatus('⚠️ Off route - head back to the route line', 4000);
+                if (!isRecalculating || now - lastOffRouteWarningAt > 15000) {
+                    speak('Off route. Recalculating to the next station.');
+                    showStatus('⚠️ Off route - switching to direct guidance', 4000);
                     lastOffRouteWarningAt = now;
+                }
+                isRecalculating = true;
+                speakDirectGuidance(station, distance, direction);
+            } else if (isRecalculating && (!progress || progress.offRouteDistance <= rejoinThreshold)) {
+                const now = Date.now();
+                isRecalculating = false;
+                if (now - lastRejoinAnnouncementAt > 5000) {
+                    speak('Back on route.');
+                    showStatus('Back on route', 2000);
+                    lastRejoinAnnouncementAt = now;
                 }
             }
 
             // Audio announcements
-            if (distance <= announceDistance && !hasAnnounced) {
+            if (!isRecalculating && distance <= announceDistance && !hasAnnounced) {
                 speak(`In ${distance} meters, CaBi station ${direction}. ${station.name}`);
                 hasAnnounced = true;
             }
@@ -1070,6 +1201,25 @@
             }
 
             lastDistance = distance;
+        }
+
+        function beginRoute() {
+            if (!route || route.length === 0 || currentStationIndex >= route.length) {
+                showStatus('Load a route first', 2000);
+                return;
+            }
+
+            navigationStarted = true;
+            initialStartPromptSpoken = false;
+            hasAnnounced = false;
+            lastDistance = Infinity;
+            announcedCuePreviewIds = new Set();
+            announcedCueNowIds = new Set();
+            lastDirectGuidanceAt = 0;
+            isRecalculating = false;
+            updateActionButtons();
+            updateDisplay();
+            speakInitialStartPrompt();
         }
 
         // Confirm docked
@@ -1086,11 +1236,14 @@
             lastDistance = Infinity;
             announcedCuePreviewIds = new Set();
             announcedCueNowIds = new Set();
+            lastDirectGuidanceAt = 0;
+            isRecalculating = false;
 
             if (currentStationIndex >= route.length) {
                 // Route complete
                 speak('Route complete. All stations visited.');
                 showStatus('🎉 Route Complete!', 3000);
+                updateActionButtons();
                 setTimeout(() => {
                     if (confirm('Route complete! Start a new route?')) {
                         location.reload();
@@ -1125,10 +1278,13 @@
             lastDistance = Infinity;
             announcedCuePreviewIds = new Set();
             announcedCueNowIds = new Set();
+            lastDirectGuidanceAt = 0;
+            isRecalculating = false;
 
             if (currentStationIndex >= route.length) {
                 speak('Route complete');
                 showStatus('Route Complete', 3000);
+                updateActionButtons();
             } else {
                 refreshMap(false);
                 updateDisplay();
@@ -1147,10 +1303,8 @@
             }
         }, 1000);
 
-        document.getElementById('loadDemoRouteBtn').addEventListener('click', async () => {
-            await loadDemoRoute(false);
-        });
         document.getElementById('startNavigationBtn').addEventListener('click', startNavigation);
+        document.getElementById('beginRouteBtn').addEventListener('click', beginRoute);
         document.getElementById('dockedBtn').addEventListener('click', confirmDocked);
         document.getElementById('skipStationBtn').addEventListener('click', skipStation);
         document.getElementById('showStationListBtn').addEventListener('click', showStationList);
