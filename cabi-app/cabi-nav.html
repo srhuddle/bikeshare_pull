@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CaBi Navigator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #d32f2f;
+            --primary-dark: #b71c1c;
+            --success: #2e7d32;
+            --warn: #f57c00;
+            --bg: #0a0a0a;
+            --surface: #1a1a1a;
+            --text: #ffffff;
+            --text-dim: #888888;
+            --border: #333333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(26, 26, 26, 0.95);
+        }
+
+        .route-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+        }
+
+        .stat {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 20px;
+            color: var(--text);
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        /* Current Station */
+        .current-station {
+            flex: 1;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+        }
+
+        .station-status {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--warn);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .station-name {
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .distance-info {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .distance {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .distance-unit {
+            font-size: 20px;
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        .direction-hint {
+            font-size: 16px;
+            color: var(--text-dim);
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid var(--primary);
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        /* Action Buttons */
+        .actions {
+            padding: 20px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 20px rgba(211, 47, 47, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 10px rgba(211, 47, 47, 0.2);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:active {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Station List */
+        .station-list {
+            display: none;
+            padding: 20px;
+        }
+
+        .station-item {
+            padding: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .station-item.completed {
+            opacity: 0.4;
+            text-decoration: line-through;
+        }
+
+        .station-item.current {
+            border-color: var(--primary);
+            background: rgba(211, 47, 47, 0.1);
+        }
+
+        /* Status Messages */
+        .status-message {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .status-message.show {
+            opacity: 1;
+        }
+
+        /* GPS Status */
+        .gps-status {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            width: 12px;
+            height: 12px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .gps-status.inactive {
+            background: var(--warn);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Setup Screen */
+        .setup-screen {
+            padding: 40px 20px;
+        }
+
+        .setup-screen h1 {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .setup-screen p {
+            color: var(--text-dim);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            color: var(--text);
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            margin-bottom: 20px;
+            resize: vertical;
+        }
+
+        .settings-group {
+            margin-bottom: 20px;
+        }
+
+        .settings-group label {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+
+        select,
+        input[type="number"] {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: var(--text);
+            font-size: 16px;
+        }
+
+        .helper-text {
+            color: var(--text-dim);
+            font-size: 13px;
+            line-height: 1.5;
+            margin-top: 8px;
+        }
+
+        .version-badge {
+            display: inline-block;
+            margin-bottom: 18px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(211, 47, 47, 0.16);
+            color: #ffb3b3;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .cue-panel {
+            margin-top: 14px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .cue-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .cue-text {
+            font-size: 17px;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
+        .cue-distance {
+            margin-top: 8px;
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Setup Screen -->
+    <div id="setupScreen" class="setup-screen container">
+        <h1>CaBi Navigator</h1>
+        <div class="version-badge">Test Build 2026-04-13 B</div>
+        <p>Load your route as JSON and start navigating with audio cues.</p>
+
+        <div class="settings-group">
+            <label>Demo Route Preset</label>
+            <select id="demoRouteSelect" onchange="loadDemoRoute(true)">
+                <option value="">None</option>
+                <option value="dupontMicro" selected>Dupont micro demo - 17th & P to Corcoran to 18th & New Hampshire</option>
+                <option value="day05">Day 05 demo - Franconia / Springfield (4 stations)</option>
+            </select>
+            <div class="helper-text">Loads one real route day from your current inventory plus TCX-derived cue points.</div>
+        </div>
+
+        <button class="btn btn-secondary" id="loadDemoRouteBtn">Load Demo Route</button>
+
+        <div class="settings-group">
+            <label>Route Data (JSON)</label>
+            <textarea id="routeInput">{
+  "name": "Dupont micro demo - 17th & P to Corcoran to 18th & New Hampshire",
+  "stations": [
+    { "name": "17th & P St NW", "lat": 38.909858, "lng": -77.038566 },
+    { "name": "17th & Corcoran St NW", "lat": 38.9121, "lng": -77.0387 },
+    { "name": "18th & New Hampshire Ave NW", "lat": 38.911268, "lng": -77.041829 }
+  ],
+  "cuesByTarget": {
+    "1": [
+      { "id": "dupont_t1_1", "text": "Head north on 17th Street NW", "lat": 38.9108, "lng": -77.0386 },
+      { "id": "dupont_t1_2", "text": "CaBi station: 17th & Corcoran St NW", "lat": 38.9121, "lng": -77.0387 }
+    ],
+    "2": [
+      { "id": "dupont_t2_1", "text": "Continue north briefly, then turn left toward New Hampshire Avenue NW", "lat": 38.9123, "lng": -77.0391 },
+      { "id": "dupont_t2_2", "text": "CaBi station: 18th & New Hampshire Ave NW", "lat": 38.911268, "lng": -77.041829 }
+    ]
+  }
+}</textarea>
+        </div>
+
+        <div class="settings-group">
+            <label>Announce Distance (meters)</label>
+            <input type="number" id="announceDistance" value="50" min="10" max="200">
+        </div>
+
+        <button class="btn btn-primary" id="startNavigationBtn">Start Navigation</button>
+    </div>
+
+    <!-- Navigation Screen -->
+    <div id="navScreen" style="display: none;" class="container">
+        <div class="header">
+            <div class="route-title">Route Progress</div>
+            <div class="progress-stats">
+                <div class="stat">
+                    Station
+                    <strong><span id="currentIndex">1</span>/<span id="totalStations">0</span></strong>
+                </div>
+                <div class="stat">
+                    Completed
+                    <strong><span id="completedCount">0</span></strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="gps-status" id="gpsStatus"></div>
+
+        <div class="current-station">
+            <div class="station-status" id="stationStatus">NAVIGATING TO</div>
+            <div class="station-name" id="stationName">Loading...</div>
+            <div class="distance-info">
+                <div class="distance" id="distance">--</div>
+                <div class="distance-unit">m</div>
+            </div>
+            <div class="direction-hint" id="directionHint" style="display: none;">
+                Continue straight
+            </div>
+            <div class="cue-panel" id="cuePanel" style="display: none;">
+                <div class="cue-label">Next Cue</div>
+                <div class="cue-text" id="cueText">Turn right</div>
+                <div class="cue-distance" id="cueDistance">120 m away</div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" id="dockedBtn">
+                ✓ DOCKED AT STATION
+            </button>
+            <button class="btn btn-secondary" id="skipStationBtn">
+                Skip (Full/Broken)
+            </button>
+            <button class="btn btn-secondary" id="showStationListBtn">
+                View All Stations
+            </button>
+        </div>
+    </div>
+
+    <div class="status-message" id="statusMessage"></div>
+
+    <script>
+        // State
+        let route = [];
+        let routeName = 'Custom Route';
+        let routeCuesByTarget = {};
+        let currentStationIndex = 0;
+        let completedStations = 0;
+        let userPosition = null;
+        let watchId = null;
+        let announceDistance = 50; // meters
+        let cueAnnounceDistance = 40; // meters
+        let hasAnnounced = false;
+        let lastDistance = Infinity;
+        let announcedCueIds = new Set();
+
+        const SAMPLE_ROUTES = {
+            dupontMicro: {
+                name: 'Dupont micro demo - 17th & P to Corcoran to 18th & New Hampshire',
+                stations: [
+                    { name: '17th & P St NW', lat: 38.909858, lng: -77.038566 },
+                    { name: '17th & Corcoran St NW', lat: 38.9121, lng: -77.0387 },
+                    { name: '18th & New Hampshire Ave NW', lat: 38.911268, lng: -77.041829 }
+                ],
+                cuesByTarget: {
+                    1: [
+                        { id: 'dupont_t1_1', text: 'Head north on 17th Street NW', lat: 38.9108, lng: -77.0386 },
+                        { id: 'dupont_t1_2', text: 'CaBi station: 17th & Corcoran St NW', lat: 38.9121, lng: -77.0387 }
+                    ],
+                    2: [
+                        { id: 'dupont_t2_1', text: 'Continue north briefly, then turn left toward New Hampshire Avenue NW', lat: 38.9123, lng: -77.0391 },
+                        { id: 'dupont_t2_2', text: 'CaBi station: 18th & New Hampshire Ave NW', lat: 38.911268, lng: -77.041829 }
+                    ]
+                }
+            },
+            day05: {
+                name: 'Day 05 demo - Franconia / Springfield',
+                stations: [
+                    { name: 'Franconia-Springfield Metro North', lat: 38.766946, lng: -77.168902 },
+                    { name: 'Seatrend Way & Topsails Ln', lat: 38.775639, lng: -77.160014 },
+                    { name: 'Metro Park Dr & Walker Ln', lat: 38.76843, lng: -77.156504 },
+                    { name: 'Charles Arrington Dr & Manchester Lakes Dr', lat: 38.766844, lng: -77.150359 }
+                ],
+                cuesByTarget: {
+                    1: [
+                        { id: 'd05_t1_1', text: 'Keep right', lat: 38.767491, lng: -77.168012 },
+                        { id: 'd05_t1_2', text: 'Turn right', lat: 38.767716, lng: -77.167825 },
+                        { id: 'd05_t1_3', text: 'Turn right', lat: 38.768262, lng: -77.165167 },
+                        { id: 'd05_t1_4', text: 'Keep right', lat: 38.769294, lng: -77.163183 },
+                        { id: 'd05_t1_5', text: 'Keep right', lat: 38.769719, lng: -77.161954 },
+                        { id: 'd05_t1_6', text: 'Turn right onto Debra Lu Way', lat: 38.773256, lng: -77.159895 },
+                        { id: 'd05_t1_7', text: 'Turn left onto Debra Lu Way', lat: 38.773567, lng: -77.159846 },
+                        { id: 'd05_t1_8', text: 'Turn right onto Simmer Circle', lat: 38.773666, lng: -77.160098 },
+                        { id: 'd05_t1_9', text: 'Turn right onto Seatrend Way', lat: 38.774871, lng: -77.160427 },
+                        { id: 'd05_t1_10', text: 'CaBi station: Seatrend Way & Topsails Ln', lat: 38.775639, lng: -77.160014 }
+                    ],
+                    2: [
+                        { id: 'd05_t2_1', text: 'Turn left onto Simmer Circle', lat: 38.774871, lng: -77.160427 },
+                        { id: 'd05_t2_2', text: 'Turn left onto Debra Lu Way', lat: 38.773666, lng: -77.160098 },
+                        { id: 'd05_t2_3', text: 'Turn right onto Debra Lu Way', lat: 38.773567, lng: -77.159846 },
+                        { id: 'd05_t2_4', text: 'Turn left', lat: 38.773256, lng: -77.159895 },
+                        { id: 'd05_t2_5', text: 'Turn right', lat: 38.768262, lng: -77.165167 },
+                        { id: 'd05_t2_6', text: 'Turn left onto Franconia-Springfield Parkway Trail', lat: 38.768077, lng: -77.166523 },
+                        { id: 'd05_t2_7', text: 'Turn right onto Franconia-Springfield Parkway Trail', lat: 38.76799, lng: -77.166078 },
+                        { id: 'd05_t2_8', text: 'Turn sharp left onto Walker Lane', lat: 38.76681, lng: -77.161895 },
+                        { id: 'd05_t2_9', text: 'Turn right onto Metro Park Drive', lat: 38.769381, lng: -77.156558 },
+                        { id: 'd05_t2_10', text: 'CaBi station: Metro Park Dr & Walker Ln', lat: 38.76843, lng: -77.156504 }
+                    ],
+                    3: [
+                        { id: 'd05_t3_1', text: 'Continue on Metro Park Drive', lat: 38.76742, lng: -77.153118 },
+                        { id: 'd05_t3_2', text: 'CaBi station: Charles Arrington Dr & Manchester Lakes Dr', lat: 38.766844, lng: -77.150359 }
+                    ]
+                }
+            }
+        };
+
+        // Speech
+        const synth = window.speechSynthesis;
+
+        // Calculate distance between two lat/lng points (Haversine)
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // Earth's radius in meters
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            return R * c; // Distance in meters
+        }
+
+        // Calculate bearing
+        function getBearing(lat1, lon1, lat2, lon2) {
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+            const y = Math.sin(Δλ) * Math.cos(φ2);
+            const x = Math.cos(φ1) * Math.sin(φ2) -
+                      Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+            const θ = Math.atan2(y, x);
+            const bearing = (θ * 180 / Math.PI + 360) % 360;
+
+            return bearing;
+        }
+
+        // Get direction text from bearing
+        function getDirection(bearing) {
+            const directions = [
+                { min: 337.5, max: 360, text: 'ahead' },
+                { min: 0, max: 22.5, text: 'ahead' },
+                { min: 22.5, max: 67.5, text: 'ahead and to your right' },
+                { min: 67.5, max: 112.5, text: 'on your right' },
+                { min: 112.5, max: 157.5, text: 'behind and to your right' },
+                { min: 157.5, max: 202.5, text: 'behind you' },
+                { min: 202.5, max: 247.5, text: 'behind and to your left' },
+                { min: 247.5, max: 292.5, text: 'on your left' },
+                { min: 292.5, max: 337.5, text: 'ahead and to your left' }
+            ];
+
+            for (const dir of directions) {
+                if (bearing >= dir.min && bearing < dir.max) {
+                    return dir.text;
+                }
+            }
+            return 'ahead';
+        }
+
+        // Speak text
+        function speak(text) {
+            synth.cancel(); // Cancel any ongoing speech
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            synth.speak(utterance);
+        }
+
+        // Show status message
+        function showStatus(message, duration = 2000) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.classList.add('show');
+            setTimeout(() => statusEl.classList.remove('show'), duration);
+        }
+
+        function loadDemoRoute(silent = false) {
+            const key = document.getElementById('demoRouteSelect').value;
+            if (!key || !SAMPLE_ROUTES[key]) {
+                if (!silent) {
+                    showStatus('Select a demo route first', 2000);
+                }
+                return;
+            }
+
+            const sample = SAMPLE_ROUTES[key];
+            document.getElementById('routeInput').value = JSON.stringify({
+                name: sample.name,
+                stations: sample.stations,
+                cuesByTarget: sample.cuesByTarget
+            }, null, 2);
+            if (!silent) {
+                showStatus(`Loaded ${sample.name}`, 2000);
+            }
+        }
+
+        function initializeDefaultRoute() {
+            const demoSelect = document.getElementById('demoRouteSelect');
+            const routeInputEl = document.getElementById('routeInput');
+            if (!demoSelect || !routeInputEl || routeInputEl.value.trim()) {
+                return;
+            }
+
+            demoSelect.value = 'dupontMicro';
+            loadDemoRoute(true);
+        }
+
+        // Start navigation
+        function startNavigation() {
+            try {
+                const routeInputEl = document.getElementById('routeInput');
+                if (!routeInputEl.value.trim()) {
+                    loadDemoRoute(true);
+                }
+
+                const routeText = routeInputEl.value;
+                const parsed = JSON.parse(routeText);
+                announceDistance = parseInt(document.getElementById('announceDistance').value) || 50;
+
+                if (Array.isArray(parsed)) {
+                    route = parsed;
+                    routeName = 'Custom Route';
+                    routeCuesByTarget = {};
+                } else {
+                    route = Array.isArray(parsed.stations) ? parsed.stations : [];
+                    routeName = parsed.name || 'Custom Route';
+                    routeCuesByTarget = parsed.cuesByTarget || {};
+                }
+
+                if (!route || route.length === 0) {
+                    alert('Please enter valid route data');
+                    return;
+                }
+
+                // Initialize
+                currentStationIndex = 0;
+                completedStations = 0;
+                announcedCueIds = new Set();
+                hasAnnounced = false;
+                lastDistance = Infinity;
+                document.getElementById('totalStations').textContent = route.length;
+                document.querySelector('.route-title').textContent = routeName;
+
+                // Hide setup, show nav
+                document.getElementById('setupScreen').style.display = 'none';
+                document.getElementById('navScreen').style.display = 'flex';
+
+                // Request GPS
+                if ('geolocation' in navigator) {
+                    watchId = navigator.geolocation.watchPosition(
+                        onPositionUpdate,
+                        onPositionError,
+                        {
+                            enableHighAccuracy: true,
+                            maximumAge: 0,
+                            timeout: 5000
+                        }
+                    );
+                    updateDisplay();
+                } else {
+                    alert('Geolocation not supported');
+                }
+            } catch (e) {
+                alert('Invalid JSON: ' + e.message);
+            }
+        }
+
+        // Position update
+        function onPositionUpdate(position) {
+            userPosition = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            };
+
+            document.getElementById('gpsStatus').classList.remove('inactive');
+            updateDisplay();
+        }
+
+        function onPositionError(error) {
+            console.error('GPS error:', error);
+            document.getElementById('gpsStatus').classList.add('inactive');
+            showStatus('GPS signal lost', 3000);
+        }
+
+        function getActiveCue() {
+            const cues = routeCuesByTarget[currentStationIndex] || [];
+            for (const cue of cues) {
+                if (!announcedCueIds.has(cue.id)) {
+                    return cue;
+                }
+            }
+            return null;
+        }
+
+        // Update display
+        function updateDisplay() {
+            if (!userPosition || currentStationIndex >= route.length) return;
+
+            const station = route[currentStationIndex];
+            const distance = Math.round(getDistance(
+                userPosition.lat,
+                userPosition.lng,
+                station.lat,
+                station.lng
+            ));
+
+            const bearing = getBearing(
+                userPosition.lat,
+                userPosition.lng,
+                station.lat,
+                station.lng
+            );
+            const direction = getDirection(bearing);
+
+            // Update UI
+            document.getElementById('stationName').textContent = station.name;
+            document.getElementById('distance').textContent = distance;
+            document.getElementById('currentIndex').textContent = currentStationIndex + 1;
+            document.getElementById('completedCount').textContent = completedStations;
+            document.getElementById('directionHint').textContent = 
+                `Station ${direction}`;
+            document.getElementById('directionHint').style.display = 'block';
+
+            const activeCue = getActiveCue();
+            const cuePanel = document.getElementById('cuePanel');
+            if (activeCue) {
+                const cueDistance = Math.round(getDistance(
+                    userPosition.lat,
+                    userPosition.lng,
+                    activeCue.lat,
+                    activeCue.lng
+                ));
+                document.getElementById('cueText').textContent = activeCue.text;
+                document.getElementById('cueDistance').textContent = `${cueDistance} m away`;
+                cuePanel.style.display = 'block';
+
+                if (cueDistance <= cueAnnounceDistance) {
+                    speak(activeCue.text);
+                    announcedCueIds.add(activeCue.id);
+                }
+            } else {
+                cuePanel.style.display = 'none';
+            }
+
+            // Audio announcements
+            if (distance <= announceDistance && !hasAnnounced) {
+                speak(`In ${distance} meters, CaBi station ${direction}. ${station.name}`);
+                hasAnnounced = true;
+            }
+
+            // Check if passed station (distance increasing after getting close)
+            if (hasAnnounced && distance > lastDistance + 20 && distance > announceDistance) {
+                speak(`You passed the station. ${station.name} is now behind you.`);
+                showStatus('⚠️ Station passed - dock or skip to continue', 4000);
+            }
+
+            lastDistance = distance;
+        }
+
+        // Confirm docked
+        function confirmDocked() {
+            if (currentStationIndex >= route.length) return;
+
+            const station = route[currentStationIndex];
+            speak(`Docked at ${station.name}. Good job.`);
+            showStatus('✓ Station confirmed', 2000);
+
+            completedStations++;
+            currentStationIndex++;
+            hasAnnounced = false;
+            lastDistance = Infinity;
+
+            if (currentStationIndex >= route.length) {
+                // Route complete
+                speak('Route complete. All stations visited.');
+                showStatus('🎉 Route Complete!', 3000);
+                setTimeout(() => {
+                    if (confirm('Route complete! Start a new route?')) {
+                        location.reload();
+                    }
+                }, 3000);
+            } else {
+                updateDisplay();
+                setTimeout(() => {
+                    const nextStation = route[currentStationIndex];
+                    speak(`Next station: ${nextStation.name}`);
+                }, 1500);
+            }
+        }
+
+        // Skip station
+        function skipStation() {
+            if (currentStationIndex >= route.length) return;
+
+            const station = route[currentStationIndex];
+            speak(`Skipping ${station.name}`);
+            showStatus('Station skipped', 2000);
+
+            currentStationIndex++;
+            hasAnnounced = false;
+            lastDistance = Infinity;
+
+            if (currentStationIndex >= route.length) {
+                speak('Route complete');
+                showStatus('Route Complete', 3000);
+            } else {
+                updateDisplay();
+            }
+        }
+
+        // Show station list (future feature)
+        function showStationList() {
+            showStatus('Station list coming soon...', 2000);
+        }
+
+        // Update display periodically
+        setInterval(() => {
+            if (userPosition && currentStationIndex < route.length) {
+                updateDisplay();
+            }
+        }, 1000);
+
+        document.getElementById('loadDemoRouteBtn').addEventListener('click', () => loadDemoRoute(false));
+        document.getElementById('startNavigationBtn').addEventListener('click', startNavigation);
+        document.getElementById('dockedBtn').addEventListener('click', confirmDocked);
+        document.getElementById('skipStationBtn').addEventListener('click', skipStation);
+        document.getElementById('showStationListBtn').addEventListener('click', showStationList);
+
+        initializeDefaultRoute();
+    </script>
+</body>
+</html>
