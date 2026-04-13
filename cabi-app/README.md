@@ -33,6 +33,8 @@ A single-file web app that runs in your phone's browser with:
 Demo included in this repo:
 - `Dupont micro demo - 17th & P to Corcoran to 18th & New Hampshire`
 - This is a short local test loop using current live station coordinates so you can verify GPS, audio, and station check-in behavior near home.
+- `Day 17 - Dupont / Adams Morgan / U Street loop (44 stations)`
+- This preset loads a real exported route JSON generated from `outputs/route_plan/station_route_plan.csv` and `outputs/route_plan_ors_tcx/day_17_17th_p_st_nw.tcx`.
 - `Day 05 demo - Franconia / Springfield (4 stations)`
 - This preset is wired from the current route inventory and the TCX course points for that day so you can test station check-ins plus basic cue prompts without building your own JSON first.
 

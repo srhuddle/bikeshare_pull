@@ -373,9 +373,10 @@
             <select id="demoRouteSelect" onchange="loadDemoRoute(true)">
                 <option value="">None</option>
                 <option value="dupontMicro" selected>Dupont micro demo - 17th & P to Corcoran to 18th & New Hampshire</option>
+                <option value="day17">Day 17 - Dupont / Adams Morgan / U Street loop (44 stations)</option>
                 <option value="day05">Day 05 demo - Franconia / Springfield (4 stations)</option>
             </select>
-            <div class="helper-text">Loads one real route day from your current inventory plus TCX-derived cue points.</div>
+            <div class="helper-text">Loads either a built-in micro test route or a real exported day route with TCX-derived cue points.</div>
         </div>
 
         <button class="btn btn-secondary" id="loadDemoRouteBtn">Load Demo Route</button>
@@ -494,6 +495,10 @@
                     ]
                 }
             },
+            day17: {
+                name: 'CaBi Day 17',
+                routeUrl: 'routes/day_17_17th_p_st_nw.json'
+            },
             day05: {
                 name: 'Day 05 demo - Franconia / Springfield',
                 stations: [
@@ -609,7 +614,7 @@
             setTimeout(() => statusEl.classList.remove('show'), duration);
         }
 
-        function loadDemoRoute(silent = false) {
+        async function loadDemoRoute(silent = false) {
             const key = document.getElementById('demoRouteSelect').value;
             if (!key || !SAMPLE_ROUTES[key]) {
                 if (!silent) {
@@ -618,14 +623,32 @@
                 return;
             }
 
-            const sample = SAMPLE_ROUTES[key];
-            document.getElementById('routeInput').value = JSON.stringify({
-                name: sample.name,
-                stations: sample.stations,
-                cuesByTarget: sample.cuesByTarget
-            }, null, 2);
-            if (!silent) {
-                showStatus(`Loaded ${sample.name}`, 2000);
+            try {
+                const sample = SAMPLE_ROUTES[key];
+                let routePayload = null;
+
+                if (sample.routeUrl) {
+                    const response = await fetch(sample.routeUrl, { cache: 'no-store' });
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    routePayload = await response.json();
+                } else {
+                    routePayload = {
+                        name: sample.name,
+                        stations: sample.stations,
+                        cuesByTarget: sample.cuesByTarget
+                    };
+                }
+
+                document.getElementById('routeInput').value = JSON.stringify(routePayload, null, 2);
+                if (!silent) {
+                    showStatus(`Loaded ${routePayload.name || sample.name}`, 2000);
+                }
+            } catch (error) {
+                if (!silent) {
+                    showStatus(`Failed to load route: ${error.message}`, 3000);
+                }
             }
         }
 
@@ -855,7 +878,9 @@
             }
         }, 1000);
 
-        document.getElementById('loadDemoRouteBtn').addEventListener('click', () => loadDemoRoute(false));
+        document.getElementById('loadDemoRouteBtn').addEventListener('click', async () => {
+            await loadDemoRoute(false);
+        });
         document.getElementById('startNavigationBtn').addEventListener('click', startNavigation);
         document.getElementById('dockedBtn').addEventListener('click', confirmDocked);
         document.getElementById('skipStationBtn').addEventListener('click', skipStation);
