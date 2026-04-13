@@ -18,8 +18,8 @@ pick_inventory_file <- function() {
 csv_file <- pick_inventory_file()
 history_match_file <- file.path("outputs", "station_inventory_with_history_match.csv")
 latest_snapshot_file <- file.path("outputs", "station_inventory_latest.csv")
-route_plan_file <- file.path("outputs", "route_plan", "station_route_plan.csv")
-route_summary_file <- file.path("outputs", "route_plan", "day_route_summary.csv")
+route_plan_file <- file.path("outputs", "route_plan_ors", "station_route_plan.csv")
+route_summary_file <- file.path("outputs", "route_plan_ors", "day_route_summary.csv")
 proposed_i66_file <- file.path("data", "fairfax_i66_proposed_stations_2026_04.csv")
 proposed_older_file <- file.path("data", "fairfax_older_unbuilt_proposals_2026_04.csv")
 message("Using inventory file: ", csv_file)
@@ -27,13 +27,13 @@ message("Using inventory file: ", csv_file)
 route_source_options <- list(
   "Current Best" = list(
     key = "current_best",
-    plan = file.path("outputs", "route_plan", "station_route_plan.csv"),
-    summary = file.path("outputs", "route_plan", "day_route_summary.csv")
-  ),
-  "ORS Candidate" = list(
-    key = "ors_candidate",
     plan = file.path("outputs", "route_plan_ors", "station_route_plan.csv"),
     summary = file.path("outputs", "route_plan_ors", "day_route_summary.csv")
+  ),
+  "Legacy Baseline" = list(
+    key = "legacy_baseline",
+    plan = file.path("outputs", "route_plan", "station_route_plan.csv"),
+    summary = file.path("outputs", "route_plan", "day_route_summary.csv")
   )
 )
 
