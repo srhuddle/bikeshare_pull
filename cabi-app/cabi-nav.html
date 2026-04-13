@@ -466,15 +466,20 @@
         let route = [];
         let routeName = 'Custom Route';
         let routeCuesByTarget = {};
+        let routeTrack = [];
         let currentStationIndex = 0;
         let completedStations = 0;
         let userPosition = null;
         let watchId = null;
         let announceDistance = 50; // meters
-        let cueAnnounceDistance = 40; // meters
+        let cuePreviewDistance = 90; // meters
+        let cueNowDistance = 20; // meters
+        let offRouteThreshold = 60; // meters
         let hasAnnounced = false;
         let lastDistance = Infinity;
-        let announcedCueIds = new Set();
+        let announcedCuePreviewIds = new Set();
+        let announcedCueNowIds = new Set();
+        let lastOffRouteWarningAt = 0;
 
         const SAMPLE_ROUTES = {
             dupontMicro: {
@@ -606,6 +611,35 @@
             synth.speak(utterance);
         }
 
+        function formatCuePreview(cue, remainingMeters) {
+            const rounded = Math.max(10, Math.round(remainingMeters / 10) * 10);
+            return `In ${rounded} meters, ${cue.text}`;
+        }
+
+        function isStationCue(cue) {
+            return (cue.text || '').toLowerCase().startsWith('cabi station:');
+        }
+
+        function getTrackProgress() {
+            if (!userPosition || !routeTrack || routeTrack.length === 0) {
+                return null;
+            }
+
+            let nearest = null;
+            for (const point of routeTrack) {
+                const distance = getDistance(userPosition.lat, userPosition.lng, point.lat, point.lng);
+                if (!nearest || distance < nearest.offRouteDistance) {
+                    nearest = {
+                        progressDistance: point.distance_m || 0,
+                        offRouteDistance: distance,
+                        lat: point.lat,
+                        lng: point.lng
+                    };
+                }
+            }
+            return nearest;
+        }
+
         // Show status message
         function showStatus(message, duration = 2000) {
             const statusEl = document.getElementById('statusMessage');
@@ -679,10 +713,12 @@
                     route = parsed;
                     routeName = 'Custom Route';
                     routeCuesByTarget = {};
+                    routeTrack = [];
                 } else {
                     route = Array.isArray(parsed.stations) ? parsed.stations : [];
                     routeName = parsed.name || 'Custom Route';
                     routeCuesByTarget = parsed.cuesByTarget || {};
+                    routeTrack = Array.isArray(parsed.track) ? parsed.track : [];
                 }
 
                 if (!route || route.length === 0) {
@@ -693,9 +729,11 @@
                 // Initialize
                 currentStationIndex = 0;
                 completedStations = 0;
-                announcedCueIds = new Set();
+                announcedCuePreviewIds = new Set();
+                announcedCueNowIds = new Set();
                 hasAnnounced = false;
                 lastDistance = Infinity;
+                lastOffRouteWarningAt = 0;
                 document.getElementById('totalStations').textContent = route.length;
                 document.querySelector('.route-title').textContent = routeName;
 
@@ -742,8 +780,23 @@
 
         function getActiveCue() {
             const cues = routeCuesByTarget[currentStationIndex] || [];
+            const progress = getTrackProgress();
             for (const cue of cues) {
-                if (!announcedCueIds.has(cue.id)) {
+                if (isStationCue(cue)) {
+                    continue;
+                }
+                const remaining = progress ? cue.distance_m - progress.progressDistance : getDistance(
+                    userPosition.lat,
+                    userPosition.lng,
+                    cue.lat,
+                    cue.lng
+                );
+                if (remaining < -30) {
+                    announcedCuePreviewIds.add(cue.id);
+                    announcedCueNowIds.add(cue.id);
+                    continue;
+                }
+                if (!announcedCueNowIds.has(cue.id)) {
                     return cue;
                 }
             }
@@ -769,6 +822,7 @@
                 station.lng
             );
             const direction = getDirection(bearing);
+            const progress = getTrackProgress();
 
             // Update UI
             document.getElementById('stationName').textContent = station.name;
@@ -782,22 +836,36 @@
             const activeCue = getActiveCue();
             const cuePanel = document.getElementById('cuePanel');
             if (activeCue) {
-                const cueDistance = Math.round(getDistance(
-                    userPosition.lat,
-                    userPosition.lng,
-                    activeCue.lat,
-                    activeCue.lng
-                ));
+                const cueDistance = Math.round(progress
+                    ? Math.max(0, activeCue.distance_m - progress.progressDistance)
+                    : getDistance(
+                        userPosition.lat,
+                        userPosition.lng,
+                        activeCue.lat,
+                        activeCue.lng
+                    ));
                 document.getElementById('cueText').textContent = activeCue.text;
                 document.getElementById('cueDistance').textContent = `${cueDistance} m away`;
                 cuePanel.style.display = 'block';
 
-                if (cueDistance <= cueAnnounceDistance) {
+                if (cueDistance <= cuePreviewDistance && !announcedCuePreviewIds.has(activeCue.id)) {
+                    speak(formatCuePreview(activeCue, cueDistance));
+                    announcedCuePreviewIds.add(activeCue.id);
+                } else if (cueDistance <= cueNowDistance && !announcedCueNowIds.has(activeCue.id)) {
                     speak(activeCue.text);
-                    announcedCueIds.add(activeCue.id);
+                    announcedCueNowIds.add(activeCue.id);
                 }
             } else {
                 cuePanel.style.display = 'none';
+            }
+
+            if (progress && progress.offRouteDistance > offRouteThreshold) {
+                const now = Date.now();
+                if (now - lastOffRouteWarningAt > 15000) {
+                    speak(`Off route by ${Math.round(progress.offRouteDistance)} meters. Head ${getDirection(getBearing(userPosition.lat, userPosition.lng, progress.lat, progress.lng))} to rejoin the planned route.`);
+                    showStatus('⚠️ Off route - head back to the route line', 4000);
+                    lastOffRouteWarningAt = now;
+                }
             }
 
             // Audio announcements
@@ -827,6 +895,8 @@
             currentStationIndex++;
             hasAnnounced = false;
             lastDistance = Infinity;
+            announcedCuePreviewIds = new Set();
+            announcedCueNowIds = new Set();
 
             if (currentStationIndex >= route.length) {
                 // Route complete
@@ -841,7 +911,13 @@
                 updateDisplay();
                 setTimeout(() => {
                     const nextStation = route[currentStationIndex];
-                    speak(`Next station: ${nextStation.name}`);
+                    const nextCue = getActiveCue();
+                    if (nextCue) {
+                        speak(`Next station: ${nextStation.name}. ${formatCuePreview(nextCue, Math.max(10, Math.round((nextCue.distance_m || 0) - (getTrackProgress()?.progressDistance || 0))))}`);
+                    } else {
+                        const nextBearing = getBearing(userPosition.lat, userPosition.lng, nextStation.lat, nextStation.lng);
+                        speak(`Next station: ${nextStation.name}. Head ${getDirection(nextBearing)}.`);
+                    }
                 }, 1500);
             }
         }
@@ -857,6 +933,8 @@
             currentStationIndex++;
             hasAnnounced = false;
             lastDistance = Infinity;
+            announcedCuePreviewIds = new Set();
+            announcedCueNowIds = new Set();
 
             if (currentStationIndex >= route.length) {
                 speak('Route complete');
