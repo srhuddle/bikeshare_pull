@@ -1159,10 +1159,6 @@
 
             const progress = getTrackProgress();
             if (progress && progress.offRouteDistance > offRouteThreshold) {
-                const nearestCue = getNearestCueByDistance(cues);
-                if (nearestCue && nearestCue.distance <= cuePreviewDistance * 1.5) {
-                    return nearestCue.cue;
-                }
                 return null;
             }
 
@@ -1293,7 +1289,7 @@
                 return;
             }
 
-            if (activeCue) {
+            if (activeCue && !isRecalculating) {
                 const cueDistance = Math.round(
                     progress && progress.offRouteDistance <= offRouteThreshold
                         ? Math.max(0, activeCue.distance_m - progress.progressDistance)
@@ -1327,9 +1323,11 @@
                     lastOffRouteWarningAt = now;
                 }
                 isRecalculating = true;
+                cuePanel.style.display = 'none';
                 speakDirectGuidance(station, distance, direction);
             } else if (!progress && distance > cuePreviewDistance * 1.5) {
                 isRecalculating = true;
+                cuePanel.style.display = 'none';
                 speakDirectGuidance(station, distance, direction);
             } else if (isRecalculating && (!progress || progress.offRouteDistance <= rejoinThreshold)) {
                 const now = Date.now();
