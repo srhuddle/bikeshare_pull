@@ -691,8 +691,14 @@ server <- function(input, output, session) {
 
   observe({
     df <- filtered_stations()
-    leafletProxy("map", data = df) %>%
-      clearGroup("stations") %>%
+    proxy <- leafletProxy("map", data = df) %>%
+      clearGroup("stations")
+
+    if (nrow(df) == 0) {
+      return()
+    }
+
+    proxy %>%
       addCircleMarkers(
         lng = ~lon,
         lat = ~lat,
