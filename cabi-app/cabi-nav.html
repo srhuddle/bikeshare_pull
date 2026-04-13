@@ -599,6 +599,7 @@
         let isRecalculating = false;
         let lastRejoinAnnouncementAt = 0;
         let lastDirectGuidanceAt = 0;
+        let lastDirectGuidanceSignature = '';
         let map = null;
         let routeLine = null;
         let stationMarkers = [];
@@ -607,7 +608,7 @@
         let navigationStarted = false;
         let initialStartPromptSpoken = false;
         const rejoinThreshold = 30; // meters
-        const directGuidanceIntervalMs = 12000;
+        const directGuidanceIntervalMs = 25000;
 
         const SAMPLE_ROUTES = {
             dupontMicro: {
@@ -1086,6 +1087,7 @@
                 lastOffRouteWarningAt = 0;
                 lastRejoinAnnouncementAt = 0;
                 lastDirectGuidanceAt = 0;
+                lastDirectGuidanceSignature = '';
                 isRecalculating = false;
                 hasFitMap = false;
                 navigationStarted = false;
@@ -1188,13 +1190,16 @@
 
         function speakDirectGuidance(station, distance, direction) {
             const now = Date.now();
-            if (now - lastDirectGuidanceAt < directGuidanceIntervalMs) {
+            const distanceBucket = Math.max(25, Math.round(distance / 25) * 25);
+            const signature = `${station.name}|${direction}|${distanceBucket}`;
+            if (signature === lastDirectGuidanceSignature && now - lastDirectGuidanceAt < directGuidanceIntervalMs) {
                 return;
             }
 
             speak(`Recalculating. ${station.name} is ${distance} meters ${direction}. Head ${direction}.`);
             showStatus(`Recalculating toward ${station.name}`, 3000);
             lastDirectGuidanceAt = now;
+            lastDirectGuidanceSignature = signature;
         }
 
         function jumpToNextCue() {
@@ -1334,6 +1339,7 @@
                     showStatus('Back on route', 2000);
                     lastRejoinAnnouncementAt = now;
                 }
+                lastDirectGuidanceSignature = '';
             }
 
             // Audio announcements
@@ -1364,6 +1370,7 @@
             announcedCuePreviewIds = new Set();
             announcedCueNowIds = new Set();
             lastDirectGuidanceAt = 0;
+            lastDirectGuidanceSignature = '';
             isRecalculating = false;
             updateActionButtons();
             updateDisplay();
@@ -1385,6 +1392,7 @@
             announcedCuePreviewIds = new Set();
             announcedCueNowIds = new Set();
             lastDirectGuidanceAt = 0;
+            lastDirectGuidanceSignature = '';
             isRecalculating = false;
 
             if (currentStationIndex >= route.length) {
@@ -1427,6 +1435,7 @@
             announcedCuePreviewIds = new Set();
             announcedCueNowIds = new Set();
             lastDirectGuidanceAt = 0;
+            lastDirectGuidanceSignature = '';
             isRecalculating = false;
 
             if (currentStationIndex >= route.length) {
