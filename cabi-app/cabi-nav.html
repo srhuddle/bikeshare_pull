@@ -324,6 +324,49 @@
             margin-top: 8px;
         }
 
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .checkbox-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .sim-panel {
+            display: none;
+            margin-top: 12px;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .sim-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .sim-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 14px 16px;
+            font-size: 13px;
+            letter-spacing: 0.8px;
+            margin-bottom: 0;
+        }
+
         .version-badge {
             display: inline-block;
             margin-bottom: 18px;
@@ -435,7 +478,8 @@
       { "id": "dupont_t1_2", "text": "CaBi station: 17th & Corcoran St NW", "lat": 38.9121, "lng": -77.0387 }
     ],
     "2": [
-      { "id": "dupont_t2_1", "text": "Continue north briefly, then turn left toward New Hampshire Avenue NW", "lat": 38.9123, "lng": -77.0391 },
+      { "id": "dupont_t2_1", "text": "Turn left onto R Street NW toward New Hampshire Avenue NW", "lat": 38.9123, "lng": -77.0391 },
+      { "id": "dupont_t2_1b", "text": "Turn left onto New Hampshire Avenue NW", "lat": 38.91155, "lng": -77.04145 },
       { "id": "dupont_t2_2", "text": "CaBi station: 18th & New Hampshire Ave NW", "lat": 38.911268, "lng": -77.041829 }
     ]
   }
@@ -445,6 +489,14 @@
         <div class="settings-group">
             <label>Announce Distance (meters)</label>
             <input type="number" id="announceDistance" value="50" min="10" max="200">
+        </div>
+
+        <div class="settings-group">
+            <div class="checkbox-row">
+                <input type="checkbox" id="simulationMode">
+                <label for="simulationMode" style="margin-bottom: 0;">Simulation Mode</label>
+            </div>
+            <div class="helper-text">Use test controls instead of live GPS so you can validate turn prompts and recalculation without riding.</div>
         </div>
 
         <button class="btn btn-primary" id="startNavigationBtn">Load Route</button>
@@ -494,6 +546,14 @@
         </div>
 
         <div class="actions">
+            <div class="sim-panel" id="simPanel">
+                <div class="sim-title">Test Controls</div>
+                <div class="sim-actions">
+                    <button class="btn btn-secondary btn-small" id="simNextCueBtn">Jump To Next Cue</button>
+                    <button class="btn btn-secondary btn-small" id="simNearStationBtn">Jump Near Station</button>
+                    <button class="btn btn-secondary btn-small" id="simOffRouteBtn">Force Off Route</button>
+                </div>
+            </div>
             <button class="btn btn-primary" id="beginRouteBtn">
                 Start Route
             </button>
@@ -526,10 +586,11 @@
         let completedStations = 0;
         let userPosition = null;
         let watchId = null;
+        let simulationMode = false;
         let announceDistance = 50; // meters
         let cuePreviewDistance = 90; // meters
         let cueNowDistance = 20; // meters
-        let offRouteThreshold = 60; // meters
+        let offRouteThreshold = 45; // meters
         let hasAnnounced = false;
         let lastDistance = Infinity;
         let announcedCuePreviewIds = new Set();
@@ -562,7 +623,8 @@
                         { id: 'dupont_t1_2', text: 'CaBi station: 17th & Corcoran St NW', lat: 38.9121, lng: -77.0387 }
                     ],
                     2: [
-                        { id: 'dupont_t2_1', text: 'Continue north briefly, then turn left toward New Hampshire Avenue NW', lat: 38.9123, lng: -77.0391 },
+                        { id: 'dupont_t2_1', text: 'Turn left onto R Street NW toward New Hampshire Avenue NW', lat: 38.9123, lng: -77.0391 },
+                        { id: 'dupont_t2_1b', text: 'Turn left onto New Hampshire Avenue NW', lat: 38.91155, lng: -77.04145 },
                         { id: 'dupont_t2_2', text: 'CaBi station: 18th & New Hampshire Ave NW', lat: 38.911268, lng: -77.041829 }
                     ]
                 }
@@ -668,10 +730,22 @@
             return 'ahead';
         }
 
+        function normalizeSpeechText(text) {
+            if (!text) {
+                return '';
+            }
+
+            return text
+                .replace(/\bNW\b/g, 'Northwest')
+                .replace(/\bNE\b/g, 'Northeast')
+                .replace(/\bSW\b/g, 'Southwest')
+                .replace(/\bSE\b/g, 'Southeast');
+        }
+
         // Speak text
         function speak(text) {
             synth.cancel(); // Cancel any ongoing speech
-            const utterance = new SpeechSynthesisUtterance(text);
+            const utterance = new SpeechSynthesisUtterance(normalizeSpeechText(text));
             utterance.rate = 1.0;
             utterance.pitch = 1.0;
             utterance.volume = 1.0;
@@ -868,11 +942,24 @@
             const beginRouteBtn = document.getElementById('beginRouteBtn');
             const dockedBtn = document.getElementById('dockedBtn');
             const skipStationBtn = document.getElementById('skipStationBtn');
+            const simPanel = document.getElementById('simPanel');
             const routeIsActive = navigationStarted && currentStationIndex < route.length;
 
             beginRouteBtn.style.display = navigationStarted || currentStationIndex >= route.length ? 'none' : 'block';
             dockedBtn.disabled = !routeIsActive;
             skipStationBtn.disabled = !routeIsActive;
+            simPanel.style.display = simulationMode ? 'block' : 'none';
+        }
+
+        function setSimulatedPosition(lat, lng, message = '') {
+            userPosition = { lat, lng };
+            document.getElementById('gpsStatus').classList.remove('inactive');
+            updateUserMarker();
+            refreshMap(false);
+            updateDisplay();
+            if (message) {
+                showStatus(message, 2000);
+            }
         }
 
         function speakInitialStartPrompt() {
@@ -987,6 +1074,8 @@
                     return;
                 }
 
+                simulationMode = document.getElementById('simulationMode').checked;
+
                 // Initialize
                 currentStationIndex = 0;
                 completedStations = 0;
@@ -1011,8 +1100,15 @@
                 refreshMap(true);
                 updateActionButtons();
 
-                // Request GPS
-                if ('geolocation' in navigator) {
+                if (simulationMode) {
+                    const startPoint = routeTrack[0] || route[0];
+                    if (startPoint) {
+                        setSimulatedPosition(startPoint.lat, startPoint.lng, 'Simulation mode active');
+                    }
+                    document.getElementById('gpsStatus').classList.remove('inactive');
+                    updateDisplay();
+                } else if ('geolocation' in navigator) {
+                    // Request GPS
                     watchId = navigator.geolocation.watchPosition(
                         onPositionUpdate,
                         onPositionError,
@@ -1033,6 +1129,9 @@
 
         // Position update
         function onPositionUpdate(position) {
+            if (simulationMode) {
+                return;
+            }
             userPosition = {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude
@@ -1096,6 +1195,52 @@
             speak(`Recalculating. ${station.name} is ${distance} meters ${direction}. Head ${direction}.`);
             showStatus(`Recalculating toward ${station.name}`, 3000);
             lastDirectGuidanceAt = now;
+        }
+
+        function jumpToNextCue() {
+            if (!simulationMode) {
+                showStatus('Enable simulation mode first', 2000);
+                return;
+            }
+
+            const cue = getActiveCue();
+            if (!cue) {
+                showStatus('No remaining cue on this leg', 2000);
+                return;
+            }
+
+            setSimulatedPosition(cue.lat, cue.lng, `Jumped to cue: ${cue.text}`);
+        }
+
+        function jumpNearStation() {
+            if (!simulationMode) {
+                showStatus('Enable simulation mode first', 2000);
+                return;
+            }
+
+            const station = route[currentStationIndex];
+            if (!station) {
+                showStatus('No active station', 2000);
+                return;
+            }
+
+            setSimulatedPosition(station.lat, station.lng, `Jumped near ${station.name}`);
+        }
+
+        function forceOffRoute() {
+            if (!simulationMode) {
+                showStatus('Enable simulation mode first', 2000);
+                return;
+            }
+
+            const cue = getActiveCue();
+            const anchor = cue || route[currentStationIndex];
+            if (!anchor) {
+                showStatus('No active leg to test', 2000);
+                return;
+            }
+
+            setSimulatedPosition(anchor.lat, anchor.lng - 0.0012, 'Forced off-route position');
         }
 
         // Update display
@@ -1176,6 +1321,9 @@
                     showStatus('⚠️ Off route - switching to direct guidance', 4000);
                     lastOffRouteWarningAt = now;
                 }
+                isRecalculating = true;
+                speakDirectGuidance(station, distance, direction);
+            } else if (!progress && distance > cuePreviewDistance * 1.5) {
                 isRecalculating = true;
                 speakDirectGuidance(station, distance, direction);
             } else if (isRecalculating && (!progress || progress.offRouteDistance <= rejoinThreshold)) {
@@ -1308,6 +1456,9 @@
         document.getElementById('dockedBtn').addEventListener('click', confirmDocked);
         document.getElementById('skipStationBtn').addEventListener('click', skipStation);
         document.getElementById('showStationListBtn').addEventListener('click', showStationList);
+        document.getElementById('simNextCueBtn').addEventListener('click', jumpToNextCue);
+        document.getElementById('simNearStationBtn').addEventListener('click', jumpNearStation);
+        document.getElementById('simOffRouteBtn').addEventListener('click', forceOffRoute);
 
         initializeDefaultRoute();
     </script>
