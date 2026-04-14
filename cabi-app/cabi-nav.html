@@ -264,17 +264,17 @@
 
         /* Setup Screen */
         .setup-screen {
-            padding: 48px 20px 32px;
+            padding: 28px 20px 24px;
         }
 
         .setup-screen h1 {
-            font-size: 32px;
-            margin-bottom: 12px;
+            font-size: 28px;
+            margin-bottom: 8px;
         }
 
         .setup-screen p {
             color: var(--text-dim);
-            margin-bottom: 30px;
+            margin-bottom: 14px;
             line-height: 1.6;
         }
 
@@ -378,7 +378,7 @@
 
         .version-badge {
             display: inline-block;
-            margin-bottom: 18px;
+            margin-bottom: 10px;
             padding: 6px 10px;
             border-radius: 999px;
             background: rgba(211, 47, 47, 0.16);
@@ -390,7 +390,7 @@
         }
 
         .home-hero {
-            padding: 22px;
+            padding: 18px;
             border: 1px solid var(--border);
             border-radius: 18px;
             background:
@@ -403,28 +403,28 @@
             text-transform: uppercase;
             letter-spacing: 1.5px;
             color: var(--text-dim);
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-weight: 700;
         }
 
         .hero-route {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 800;
             line-height: 1.2;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .hero-summary {
             color: #b4bcc5;
-            font-size: 15px;
-            line-height: 1.5;
-            margin-bottom: 18px;
+            font-size: 14px;
+            line-height: 1.45;
+            margin-bottom: 12px;
         }
 
         .route-card,
         .resume-card {
-            margin-top: 18px;
-            padding: 18px;
+            margin-top: 14px;
+            padding: 16px;
             border-radius: 16px;
             border: 1px solid var(--border);
             background: rgba(255, 255, 255, 0.02);
@@ -455,7 +455,7 @@
             color: #c1cad3;
             font-size: 14px;
             line-height: 1.5;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         .resume-actions {
@@ -468,15 +468,15 @@
             display: grid;
             grid-template-columns: 1fr;
             gap: 12px;
-            margin-top: 22px;
+            margin-top: 16px;
         }
 
         .nav-summary {
             display: none;
-            margin-top: 14px;
+            margin-top: 10px;
             color: #a4adb7;
-            font-size: 14px;
-            line-height: 1.5;
+            font-size: 13px;
+            line-height: 1.45;
         }
 
         .cue-panel {
@@ -628,13 +628,12 @@
     <!-- Setup Screen -->
     <div id="setupScreen" class="setup-screen container">
         <h1>CaBi Navigator</h1>
-        <div class="version-badge">Test Build 2026-04-14 10:28 EDT</div>
-        <p>Pick your route and go. Settings, voice, simulation, and API details live behind the gear so the ride flow stays clean.</p>
+        <div class="version-badge">Test Build 2026-04-14 10:34 EDT</div>
 
         <div class="home-hero">
             <div class="hero-label">Ready To Roll</div>
             <div class="hero-route" id="heroRouteName">Dupont micro demo</div>
-            <div class="hero-summary" id="heroRouteSummary">Select a route, review the first stop, then start or resume live guidance.</div>
+            <div class="hero-summary" id="heroRouteSummary">Pick a route and start.</div>
 
             <div class="route-card">
                 <div class="settings-group" style="margin-bottom: 0;">
@@ -1481,12 +1480,12 @@
             const select = document.getElementById('demoRouteSelect');
             const selectedOption = select.options[select.selectedIndex];
             const label = selectedOption && selectedOption.value ? selectedOption.textContent : 'No route selected';
-            const routingSummary = isGoogleRoutingEnabled() ? 'Live Google rerouting is ready.' : 'Saved cues will be used until a Google Routes key is added.';
+            const routingSummary = isGoogleRoutingEnabled() ? 'Live Google rerouting ready.' : 'Saved cues active until a Google key is added.';
 
             document.getElementById('heroRouteName').textContent = label;
-            document.getElementById('heroRouteSummary').textContent = `${routingSummary} Use the gear for voice, simulation, and ride settings.`;
+            document.getElementById('heroRouteSummary').textContent = routingSummary;
             document.getElementById('navSummary').style.display = 'block';
-            document.getElementById('navSummary').textContent = `${routingSummary} Announce distance is ${announceDistance} meters${simulationMode ? ' and simulation mode is on.' : '.'}`;
+            document.getElementById('navSummary').textContent = `${announceDistance} m announce distance${simulationMode ? ' • simulation on' : ''}`;
         }
 
         function openSettingsModal() {
