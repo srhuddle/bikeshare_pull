@@ -360,6 +360,16 @@
             gap: 8px;
         }
 
+        .settings-input {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: var(--text);
+            font-size: 16px;
+        }
+
         .btn-small {
             padding: 14px 16px;
             font-size: 13px;
@@ -449,7 +459,7 @@
     <!-- Setup Screen -->
     <div id="setupScreen" class="setup-screen container">
         <h1>CaBi Navigator</h1>
-        <div class="version-badge">Test Build 2026-04-14 08:16 EDT</div>
+        <div class="version-badge">Test Build 2026-04-14 08:54 EDT</div>
         <p>Load your route as JSON, review the first stop, then tap Start to begin live guidance.</p>
 
         <div class="settings-group">
@@ -489,6 +499,21 @@
         <div class="settings-group">
             <label>Announce Distance (meters)</label>
             <input type="number" id="announceDistance" value="50" min="10" max="200">
+        </div>
+
+        <div class="settings-group">
+            <label>Routing Mode</label>
+            <select id="routingMode" class="settings-input">
+                <option value="google">Google Routes (Live)</option>
+                <option value="saved">Saved Cues Only</option>
+            </select>
+            <div class="helper-text">Live Google routing is preferred when you provide your own key. Saved cues remain the fallback mode.</div>
+        </div>
+
+        <div class="settings-group">
+            <label>Google Routes API Key</label>
+            <input type="password" id="googleRoutesApiKey" class="settings-input" placeholder="Paste your own Google Routes key">
+            <div class="helper-text">Stored only in this browser via localStorage. Restrict the key to Routes API and this site origin.</div>
         </div>
 
         <div class="settings-group">
@@ -582,11 +607,16 @@
         let routeName = 'Custom Route';
         let routeCuesByTarget = {};
         let routeTrack = [];
+        let activeLegTrack = [];
+        let activeLegCues = [];
+        let activeLegSource = 'saved';
         let currentStationIndex = 0;
         let completedStations = 0;
         let userPosition = null;
         let watchId = null;
         let simulationMode = false;
+        let routingMode = 'google';
+        let googleRoutesApiKey = '';
         let announceDistance = 50; // meters
         let cuePreviewDistance = 90; // meters
         let cueNowDistance = 20; // meters
@@ -599,6 +629,7 @@
         let isRecalculating = false;
         let lastRejoinAnnouncementAt = 0;
         let hasSpokenDirectGuidanceThisOffRoute = false;
+        let activeRouteRequestId = 0;
         let map = null;
         let routeLine = null;
         let stationMarkers = [];
@@ -607,6 +638,10 @@
         let navigationStarted = false;
         let initialStartPromptSpoken = false;
         const rejoinThreshold = 30; // meters
+        const LOCAL_STORAGE_KEYS = {
+            routingMode: 'cabi_nav_routing_mode',
+            googleKey: 'cabi_nav_google_routes_api_key'
+        };
 
         const SAMPLE_ROUTES = {
             dupontMicro: {
@@ -735,10 +770,246 @@
             }
 
             return text
+                .replace(/\bCaBi\b/g, 'cab-bee')
+                .replace(/\bCorcoran\b/g, 'CORK-eran')
                 .replace(/\bNW\b/g, 'Northwest')
                 .replace(/\bNE\b/g, 'Northeast')
                 .replace(/\bSW\b/g, 'Southwest')
                 .replace(/\bSE\b/g, 'Southeast');
+        }
+
+        function loadRoutingSettings() {
+            const savedRoutingMode = localStorage.getItem(LOCAL_STORAGE_KEYS.routingMode);
+            const savedGoogleKey = localStorage.getItem(LOCAL_STORAGE_KEYS.googleKey);
+
+            if (savedRoutingMode) {
+                routingMode = savedRoutingMode;
+            }
+            if (savedGoogleKey) {
+                googleRoutesApiKey = savedGoogleKey;
+            }
+
+            document.getElementById('routingMode').value = routingMode;
+            document.getElementById('googleRoutesApiKey').value = googleRoutesApiKey;
+        }
+
+        function saveRoutingSettings() {
+            routingMode = document.getElementById('routingMode').value;
+            googleRoutesApiKey = document.getElementById('googleRoutesApiKey').value.trim();
+
+            localStorage.setItem(LOCAL_STORAGE_KEYS.routingMode, routingMode);
+            if (googleRoutesApiKey) {
+                localStorage.setItem(LOCAL_STORAGE_KEYS.googleKey, googleRoutesApiKey);
+            } else {
+                localStorage.removeItem(LOCAL_STORAGE_KEYS.googleKey);
+            }
+        }
+
+        function isGoogleRoutingEnabled() {
+            return routingMode === 'google' && !!googleRoutesApiKey;
+        }
+
+        function getActiveTrack() {
+            if (activeLegTrack && activeLegTrack.length > 1) {
+                return activeLegTrack;
+            }
+            return routeTrack;
+        }
+
+        function getActiveCueList() {
+            if (activeLegCues && activeLegCues.length > 0) {
+                return activeLegCues;
+            }
+            return routeCuesByTarget[currentStationIndex] || [];
+        }
+
+        function decodePolyline(encoded) {
+            if (!encoded) {
+                return [];
+            }
+
+            const points = [];
+            let index = 0;
+            let lat = 0;
+            let lng = 0;
+
+            while (index < encoded.length) {
+                let result = 0;
+                let shift = 0;
+                let byte;
+                do {
+                    byte = encoded.charCodeAt(index++) - 63;
+                    result |= (byte & 0x1f) << shift;
+                    shift += 5;
+                } while (byte >= 0x20);
+                const deltaLat = (result & 1) ? ~(result >> 1) : (result >> 1);
+                lat += deltaLat;
+
+                result = 0;
+                shift = 0;
+                do {
+                    byte = encoded.charCodeAt(index++) - 63;
+                    result |= (byte & 0x1f) << shift;
+                    shift += 5;
+                } while (byte >= 0x20);
+                const deltaLng = (result & 1) ? ~(result >> 1) : (result >> 1);
+                lng += deltaLng;
+
+                points.push({
+                    lat: lat / 1e5,
+                    lng: lng / 1e5
+                });
+            }
+
+            return points;
+        }
+
+        function withCumulativeDistance(points) {
+            if (!Array.isArray(points) || points.length === 0) {
+                return [];
+            }
+
+            let running = 0;
+            return points.map((point, index) => {
+                if (index > 0) {
+                    const prev = points[index - 1];
+                    running += getDistance(prev.lat, prev.lng, point.lat, point.lng);
+                }
+                return {
+                    lat: point.lat,
+                    lng: point.lng,
+                    distance_m: running
+                };
+            });
+        }
+
+        async function fetchGoogleRoute(origin, destination) {
+            const response = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Goog-Api-Key': googleRoutesApiKey,
+                    'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.legs.steps.distanceMeters,routes.legs.steps.navigationInstruction.instructions,routes.legs.steps.polyline.encodedPolyline'
+                },
+                body: JSON.stringify({
+                    origin: {
+                        location: {
+                            latLng: {
+                                latitude: origin.lat,
+                                longitude: origin.lng
+                            }
+                        }
+                    },
+                    destination: {
+                        location: {
+                            latLng: {
+                                latitude: destination.lat,
+                                longitude: destination.lng
+                            }
+                        }
+                    },
+                    travelMode: 'BICYCLE',
+                    languageCode: 'en-US'
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Google Routes HTTP ${response.status}`);
+            }
+
+            const payload = await response.json();
+            if (!payload.routes || !payload.routes.length) {
+                throw new Error('No Google route returned');
+            }
+
+            return payload.routes[0];
+        }
+
+        function applyGoogleRoute(routeResponse, station) {
+            const decodedTrack = decodePolyline(routeResponse.polyline?.encodedPolyline || '');
+            activeLegTrack = withCumulativeDistance(decodedTrack);
+
+            let cumulative = 0;
+            activeLegCues = (routeResponse.legs?.[0]?.steps || [])
+                .map((step, index) => {
+                    cumulative += step.distanceMeters || 0;
+                    const stepPoints = decodePolyline(step.polyline?.encodedPolyline || '');
+                    const anchor = stepPoints[Math.max(0, stepPoints.length - 1)] || {
+                        lat: station.lat,
+                        lng: station.lng
+                    };
+
+                    return {
+                        id: `google_${currentStationIndex}_${index}`,
+                        text: step.navigationInstruction?.instructions || 'Continue',
+                        lat: anchor.lat,
+                        lng: anchor.lng,
+                        distance_m: cumulative
+                    };
+                })
+                .filter(cue => cue.text);
+
+            activeLegSource = 'google';
+            hasFitMap = false;
+            if (routeLine) {
+                routeLine.remove();
+                routeLine = null;
+            }
+            refreshMap(true);
+        }
+
+        async function refreshCurrentLegRoute(options = {}) {
+            if (!navigationStarted || currentStationIndex >= route.length) {
+                return;
+            }
+
+            const station = route[currentStationIndex];
+            if (!station) {
+                return;
+            }
+
+            if (!isGoogleRoutingEnabled() || !userPosition) {
+                activeLegTrack = [];
+                activeLegCues = [];
+                activeLegSource = 'saved';
+                if (routeLine) {
+                    routeLine.remove();
+                    routeLine = null;
+                }
+                return;
+            }
+
+            const requestId = ++activeRouteRequestId;
+            const origin = {
+                lat: userPosition.lat,
+                lng: userPosition.lng
+            };
+
+            try {
+                const routeResponse = await fetchGoogleRoute(origin, station);
+                if (requestId !== activeRouteRequestId) {
+                    return;
+                }
+
+                applyGoogleRoute(routeResponse, station);
+                if (options.announceLoaded) {
+                    showStatus('Live Google route loaded', 2000);
+                }
+                updateDisplay();
+            } catch (error) {
+                if (requestId !== activeRouteRequestId) {
+                    return;
+                }
+
+                activeLegTrack = [];
+                activeLegCues = [];
+                activeLegSource = 'saved';
+                if (routeLine) {
+                    routeLine.remove();
+                    routeLine = null;
+                }
+                showStatus(`Google routing unavailable: ${error.message}`, 3000);
+            }
         }
 
         // Speak text
@@ -761,12 +1032,13 @@
         }
 
         function getTrackProgress() {
-            if (!userPosition || !routeTrack || routeTrack.length === 0) {
+            const track = getActiveTrack();
+            if (!userPosition || !track || track.length === 0) {
                 return null;
             }
 
             let nearest = null;
-            for (const point of routeTrack) {
+            for (const point of track) {
                 const distance = getDistance(userPosition.lat, userPosition.lng, point.lat, point.lng);
                 if (!nearest || distance < nearest.offRouteDistance) {
                     nearest = {
@@ -882,9 +1154,10 @@
             }
 
             if (!routeLine) {
-                if (routeTrack && routeTrack.length > 1) {
+                const track = getActiveTrack();
+                if (track && track.length > 1) {
                     routeLine = L.polyline(
-                        routeTrack.map(point => [point.lat, point.lng]),
+                        track.map(point => [point.lat, point.lng]),
                         {
                             color: '#31a6b6',
                             weight: 4,
@@ -1074,8 +1347,12 @@
                 }
 
                 simulationMode = document.getElementById('simulationMode').checked;
+                saveRoutingSettings();
 
                 // Initialize
+                activeLegTrack = [];
+                activeLegCues = [];
+                activeLegSource = 'saved';
                 currentStationIndex = 0;
                 completedStations = 0;
                 announcedCuePreviewIds = new Set();
@@ -1149,7 +1426,7 @@
         }
 
         function getActiveCue() {
-            const cues = routeCuesByTarget[currentStationIndex] || [];
+            const cues = getActiveCueList();
             if (!userPosition) {
                 return null;
             }
@@ -1189,6 +1466,7 @@
             speak(`Recalculating. ${station.name} is ${distance} meters ${direction}. Head ${direction}.`);
             showStatus(`Recalculating toward ${station.name}`, 3000);
             hasSpokenDirectGuidanceThisOffRoute = true;
+            refreshCurrentLegRoute();
         }
 
         function jumpToNextCue() {
@@ -1362,6 +1640,7 @@
             updateActionButtons();
             updateDisplay();
             speakInitialStartPrompt();
+            refreshCurrentLegRoute({ announceLoaded: true });
         }
 
         // Confirm docked
@@ -1374,6 +1653,9 @@
 
             completedStations++;
             currentStationIndex++;
+            activeLegTrack = [];
+            activeLegCues = [];
+            activeLegSource = 'saved';
             hasAnnounced = false;
             lastDistance = Infinity;
             announcedCuePreviewIds = new Set();
@@ -1394,6 +1676,7 @@
             } else {
                 refreshMap(false);
                 updateDisplay();
+                refreshCurrentLegRoute();
                 setTimeout(() => {
                     const nextStation = route[currentStationIndex];
                     const nextCue = getActiveCue();
@@ -1416,6 +1699,9 @@
             showStatus('Station skipped', 2000);
 
             currentStationIndex++;
+            activeLegTrack = [];
+            activeLegCues = [];
+            activeLegSource = 'saved';
             hasAnnounced = false;
             lastDistance = Infinity;
             announcedCuePreviewIds = new Set();
@@ -1430,6 +1716,7 @@
             } else {
                 refreshMap(false);
                 updateDisplay();
+                refreshCurrentLegRoute();
             }
         }
 
@@ -1453,7 +1740,10 @@
         document.getElementById('simNextCueBtn').addEventListener('click', jumpToNextCue);
         document.getElementById('simNearStationBtn').addEventListener('click', jumpNearStation);
         document.getElementById('simOffRouteBtn').addEventListener('click', forceOffRoute);
+        document.getElementById('routingMode').addEventListener('change', saveRoutingSettings);
+        document.getElementById('googleRoutesApiKey').addEventListener('change', saveRoutingSettings);
 
+        loadRoutingSettings();
         initializeDefaultRoute();
     </script>
 </body>
