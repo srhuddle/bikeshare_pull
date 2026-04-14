@@ -1317,7 +1317,7 @@
 
             if (progress && progress.offRouteDistance > offRouteThreshold) {
                 const now = Date.now();
-                if (!isRecalculating || now - lastOffRouteWarningAt > 15000) {
+                if (!isRecalculating) {
                     speak('Off route. Recalculating to the next station.');
                     showStatus('⚠️ Off route - switching to direct guidance', 4000);
                     lastOffRouteWarningAt = now;
@@ -1333,6 +1333,7 @@
                     showStatus('Back on route', 2000);
                     lastRejoinAnnouncementAt = now;
                 }
+                lastOffRouteWarningAt = 0;
                 lastDirectGuidanceSignature = '';
             }
 
