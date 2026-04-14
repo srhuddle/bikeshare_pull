@@ -459,7 +459,7 @@
     <!-- Setup Screen -->
     <div id="setupScreen" class="setup-screen container">
         <h1>CaBi Navigator</h1>
-        <div class="version-badge">Test Build 2026-04-14 09:24 EDT</div>
+        <div class="version-badge">Test Build 2026-04-14 09:31 EDT</div>
         <p>Load your route as JSON, review the first stop, then tap Start to begin live guidance.</p>
 
         <div class="settings-group">
@@ -903,6 +903,17 @@
 
             voiceSelect.innerHTML = '<option value="">Default device voice</option>';
 
+            if (availableVoices.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Default device voice only';
+                option.selected = true;
+                voiceSelect.appendChild(option);
+                voiceSelect.disabled = true;
+                return;
+            }
+
+            voiceSelect.disabled = false;
             availableVoices.forEach(voice => {
                 const option = document.createElement('option');
                 option.value = voice.name;
@@ -1448,12 +1459,10 @@
         }
 
         // Start navigation
-        function startNavigation() {
+        async function startNavigation() {
             try {
                 const routeInputEl = document.getElementById('routeInput');
-                if (!routeInputEl.value.trim()) {
-                    loadDemoRoute(true);
-                }
+                await loadDemoRoute(true);
 
                 const routeText = routeInputEl.value;
                 const parsed = JSON.parse(routeText);
@@ -1872,8 +1881,10 @@
         document.getElementById('simOffRouteBtn').addEventListener('click', forceOffRoute);
         document.getElementById('routingMode').addEventListener('change', saveRoutingSettings);
         document.getElementById('googleRoutesApiKey').addEventListener('change', saveRoutingSettings);
+        document.getElementById('googleRoutesApiKey').addEventListener('input', saveRoutingSettings);
         document.getElementById('voiceSelect').addEventListener('change', saveRoutingSettings);
         document.getElementById('speechRate').addEventListener('change', saveRoutingSettings);
+        document.getElementById('speechRate').addEventListener('input', saveRoutingSettings);
         document.getElementById('testVoiceBtn').addEventListener('click', testVoiceSample);
 
         loadRoutingSettings();
