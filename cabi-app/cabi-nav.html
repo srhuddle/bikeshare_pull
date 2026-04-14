@@ -24,9 +24,12 @@
             --warn: #f57c00;
             --bg: #0a0a0a;
             --surface: #1a1a1a;
+            --surface-raised: #24282d;
+            --surface-soft: #2f353b;
             --text: #ffffff;
             --text-dim: #888888;
             --border: #333333;
+            --border-strong: #4a535c;
         }
 
         body {
@@ -44,6 +47,29 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+        }
+
+        .topbar {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 250;
+        }
+
+        .icon-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 999px;
+            border: 1px solid var(--border-strong);
+            background: rgba(36, 40, 45, 0.92);
+            color: var(--text);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
         }
 
         /* Header */
@@ -191,33 +217,6 @@
             cursor: not-allowed;
         }
 
-        /* Station List */
-        .station-list {
-            display: none;
-            padding: 20px;
-        }
-
-        .station-item {
-            padding: 16px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .station-item.completed {
-            opacity: 0.4;
-            text-decoration: line-through;
-        }
-
-        .station-item.current {
-            border-color: var(--primary);
-            background: rgba(211, 47, 47, 0.1);
-        }
-
         /* Status Messages */
         .status-message {
             position: fixed;
@@ -265,7 +264,7 @@
 
         /* Setup Screen */
         .setup-screen {
-            padding: 40px 20px;
+            padding: 48px 20px 32px;
         }
 
         .setup-screen h1 {
@@ -390,6 +389,96 @@
             text-transform: uppercase;
         }
 
+        .home-hero {
+            padding: 22px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background:
+                linear-gradient(180deg, rgba(47, 53, 59, 0.55) 0%, rgba(26, 26, 26, 0.95) 100%);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+        }
+
+        .hero-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .hero-route {
+            font-size: 24px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 10px;
+        }
+
+        .hero-summary {
+            color: #b4bcc5;
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 18px;
+        }
+
+        .route-card,
+        .resume-card {
+            margin-top: 18px;
+            padding: 18px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .resume-card {
+            display: none;
+            border-color: rgba(211, 47, 47, 0.35);
+            background: linear-gradient(180deg, rgba(211, 47, 47, 0.09) 0%, rgba(47, 53, 59, 0.25) 100%);
+        }
+
+        .resume-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.4px;
+            color: #ffb3b3;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .resume-name {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .resume-meta {
+            color: #c1cad3;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 14px;
+        }
+
+        .resume-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .home-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .nav-summary {
+            display: none;
+            margin-top: 14px;
+            color: #a4adb7;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
         .cue-panel {
             margin-top: 14px;
             padding: 14px 16px;
@@ -453,24 +542,128 @@
             border-top: 1px solid var(--border);
             background: rgba(255, 255, 255, 0.02);
         }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .actions-grid .btn {
+            margin-bottom: 0;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.72);
+            z-index: 300;
+            display: none;
+            align-items: stretch;
+            justify-content: flex-end;
+        }
+
+        .modal-backdrop.show {
+            display: flex;
+        }
+
+        .settings-modal {
+            width: min(100%, 440px);
+            height: 100%;
+            background: linear-gradient(180deg, #14181c 0%, #0d0f12 100%);
+            border-left: 1px solid var(--border-strong);
+            padding: 26px 20px 22px;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .modal-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .modal-subtitle {
+            color: var(--text-dim);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 22px;
+        }
+
+        @media (min-width: 640px) {
+            .resume-actions,
+            .home-actions,
+            .actions-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .home-actions .btn-primary {
+                grid-column: span 2;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="topbar">
+        <button class="icon-btn" id="settingsToggleBtn" aria-label="Open settings">⚙︎</button>
+    </div>
+
     <!-- Setup Screen -->
     <div id="setupScreen" class="setup-screen container">
         <h1>CaBi Navigator</h1>
-        <div class="version-badge">Test Build 2026-04-14 09:31 EDT</div>
-        <p>Load your route as JSON, review the first stop, then tap Start to begin live guidance.</p>
+        <div class="version-badge">Test Build 2026-04-14 10:02 EDT</div>
+        <p>Pick your route and go. Settings, voice, simulation, and API details live behind the gear so the ride flow stays clean.</p>
 
-        <div class="settings-group">
-            <label>Demo Route Preset</label>
-            <select id="demoRouteSelect" onchange="loadDemoRoute(true)">
-                <option value="">None</option>
-                <option value="dupontMicro" selected>Dupont micro demo - 17th & P to Corcoran to 18th & New Hampshire</option>
-                <option value="day17">Day 17 - Dupont / Adams Morgan / U Street loop (44 stations)</option>
-                <option value="day05">Day 05 demo - Franconia / Springfield (4 stations)</option>
-            </select>
-            <div class="helper-text">Loads either a built-in micro test route or a real exported day route with TCX-derived cue points.</div>
+        <div class="home-hero">
+            <div class="hero-label">Ready To Roll</div>
+            <div class="hero-route" id="heroRouteName">Dupont micro demo</div>
+            <div class="hero-summary" id="heroRouteSummary">Select a route, review the first stop, then start or resume live guidance.</div>
+
+            <div class="route-card">
+                <div class="settings-group" style="margin-bottom: 0;">
+                    <label>Route</label>
+                    <select id="demoRouteSelect" onchange="loadDemoRoute(true)">
+                        <option value="">None</option>
+                        <option value="dupontMicro" selected>Dupont micro demo - 17th & P to Corcoran to 18th & New Hampshire</option>
+                        <option value="day17">Day 17 - Dupont / Adams Morgan / U Street loop (44 stations)</option>
+                        <option value="day05">Day 05 demo - Franconia / Springfield (4 stations)</option>
+                    </select>
+                    <div class="helper-text">Built-in micro demo or a real exported day route with live Google rerouting when your key is present.</div>
+                </div>
+            </div>
+
+            <div class="resume-card" id="resumeCard">
+                <div class="resume-title">Saved Session</div>
+                <div class="resume-name" id="resumeRouteName">CaBi Day 17</div>
+                <div class="resume-meta" id="resumeMeta">Resume at station 12 of 44.</div>
+                <div class="resume-actions">
+                    <button class="btn btn-primary" id="resumeSessionBtn">Resume Route</button>
+                    <button class="btn btn-secondary" id="startOverBtn">Start Over</button>
+                </div>
+            </div>
+
+            <div class="home-actions">
+                <button class="btn btn-primary" id="startNavigationBtn">Load Route</button>
+                <button class="btn btn-secondary" id="openSettingsBtn">Settings</button>
+            </div>
+            <div class="nav-summary" id="navSummary">Google Routes live guidance is active when your key is set. Otherwise the app falls back to saved cues.</div>
         </div>
 
         <div class="settings-group" style="display: none;">
@@ -495,52 +688,6 @@
   }
 }</textarea>
         </div>
-
-        <div class="settings-group">
-            <label>Announce Distance (meters)</label>
-            <input type="number" id="announceDistance" value="50" min="10" max="200">
-        </div>
-
-        <div class="settings-group">
-            <label>Routing Mode</label>
-            <select id="routingMode" class="settings-input">
-                <option value="google">Google Routes (Live)</option>
-                <option value="saved">Saved Cues Only</option>
-            </select>
-            <div class="helper-text">Live Google routing is preferred when you provide your own key. Saved cues remain the fallback mode.</div>
-        </div>
-
-        <div class="settings-group">
-            <label>Google Routes API Key</label>
-            <input type="password" id="googleRoutesApiKey" class="settings-input" placeholder="Paste your own Google Routes key">
-            <div class="helper-text">Stored only in this browser via localStorage. Restrict the key to Routes API and this site origin.</div>
-        </div>
-
-        <div class="settings-group">
-            <label>Voice</label>
-            <select id="voiceSelect" class="settings-input">
-                <option value="">Default device voice</option>
-            </select>
-            <div class="helper-text">Uses voices exposed by this browser on this device. Saved locally in this browser.</div>
-        </div>
-
-        <div class="settings-group">
-            <label>Speech Rate</label>
-            <input type="number" id="speechRate" class="settings-input" value="1.0" min="0.7" max="1.3" step="0.05">
-            <div class="helper-text">Lower values sound calmer and are usually easier to follow in-ear.</div>
-        </div>
-
-        <button class="btn btn-secondary" id="testVoiceBtn">Test Voice</button>
-
-        <div class="settings-group">
-            <div class="checkbox-row">
-                <input type="checkbox" id="simulationMode">
-                <label for="simulationMode" style="margin-bottom: 0;">Simulation Mode</label>
-            </div>
-            <div class="helper-text">Use test controls instead of live GPS so you can validate turn prompts and recalculation without riding.</div>
-        </div>
-
-        <button class="btn btn-primary" id="startNavigationBtn">Load Route</button>
     </div>
 
     <!-- Navigation Screen -->
@@ -595,18 +742,79 @@
                     <button class="btn btn-secondary btn-small" id="simOffRouteBtn">Force Off Route</button>
                 </div>
             </div>
-            <button class="btn btn-primary" id="beginRouteBtn">
-                Start Route
-            </button>
-            <button class="btn btn-primary" id="dockedBtn">
-                ✓ DOCKED AT STATION
-            </button>
-            <button class="btn btn-secondary" id="skipStationBtn">
-                Skip (Full/Broken)
-            </button>
-            <button class="btn btn-secondary" id="showStationListBtn">
-                View All Stations
-            </button>
+            <div class="actions-grid">
+                <button class="btn btn-primary" id="beginRouteBtn">
+                    Start Route
+                </button>
+                <button class="btn btn-secondary" id="pauseRouteBtn">
+                    Pause Route
+                </button>
+                <button class="btn btn-primary" id="dockedBtn">
+                    ✓ DOCKED AT STATION
+                </button>
+                <button class="btn btn-secondary" id="skipStationBtn">
+                    Skip (Full/Broken)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="settingsModalBackdrop" aria-hidden="true">
+        <div class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title" id="settingsModalTitle">Ride Settings</div>
+                    <div class="modal-subtitle">Voice, routing, simulation, and API settings live here so the main app stays focused on the ride.</div>
+                </div>
+                <button class="modal-close" id="closeSettingsBtn" aria-label="Close settings">×</button>
+            </div>
+
+            <div class="settings-group">
+                <label>Announce Distance (meters)</label>
+                <input type="number" id="announceDistance" value="50" min="10" max="200">
+            </div>
+
+            <div class="settings-group">
+                <label>Routing Mode</label>
+                <select id="routingMode" class="settings-input">
+                    <option value="google">Google Routes (Live)</option>
+                    <option value="saved">Saved Cues Only</option>
+                </select>
+                <div class="helper-text">Live Google routing is preferred when you provide your own key. Saved cues remain the fallback mode.</div>
+            </div>
+
+            <div class="settings-group">
+                <label>Google Routes API Key</label>
+                <input type="password" id="googleRoutesApiKey" class="settings-input" placeholder="Paste your own Google Routes key">
+                <div class="helper-text">Stored only in this browser via localStorage. Restrict the key to Routes API and this site origin.</div>
+            </div>
+
+            <div class="settings-group">
+                <label>Voice</label>
+                <select id="voiceSelect" class="settings-input">
+                    <option value="">Default device voice</option>
+                </select>
+                <div class="helper-text">Limited to practical GB/US voices when available on this device.</div>
+            </div>
+
+            <div class="settings-group">
+                <label>Speech Rate</label>
+                <input type="number" id="speechRate" class="settings-input" value="1.0" min="0.7" max="1.3" step="0.05">
+                <div class="helper-text">Lower values sound calmer and are usually easier to follow in-ear.</div>
+            </div>
+
+            <div class="settings-group">
+                <div class="checkbox-row">
+                    <input type="checkbox" id="simulationMode">
+                    <label for="simulationMode" style="margin-bottom: 0;">Simulation Mode</label>
+                </div>
+                <div class="helper-text">Use test controls instead of live GPS so you can validate turn prompts and recalculation without riding.</div>
+            </div>
+
+            <div class="home-actions">
+                <button class="btn btn-secondary" id="testVoiceBtn">Test Voice</button>
+                <button class="btn btn-primary" id="closeSettingsPrimaryBtn">Done</button>
+            </div>
         </div>
     </div>
 
@@ -656,12 +864,17 @@
         let hasFitMap = false;
         let navigationStarted = false;
         let initialStartPromptSpoken = false;
+        let routeSourceKey = '';
+        let routeSession = null;
         const rejoinThreshold = 30; // meters
         const LOCAL_STORAGE_KEYS = {
             routingMode: 'cabi_nav_routing_mode',
             googleKey: 'cabi_nav_google_routes_api_key',
             voiceName: 'cabi_nav_voice_name',
-            speechRate: 'cabi_nav_speech_rate'
+            speechRate: 'cabi_nav_speech_rate',
+            announceDistance: 'cabi_nav_announce_distance',
+            simulationMode: 'cabi_nav_simulation_mode',
+            session: 'cabi_nav_route_session'
         };
 
         const SAMPLE_ROUTES = {
@@ -804,6 +1017,8 @@
             const savedGoogleKey = localStorage.getItem(LOCAL_STORAGE_KEYS.googleKey);
             const savedVoiceName = localStorage.getItem(LOCAL_STORAGE_KEYS.voiceName);
             const savedSpeechRate = localStorage.getItem(LOCAL_STORAGE_KEYS.speechRate);
+            const savedAnnounceDistance = localStorage.getItem(LOCAL_STORAGE_KEYS.announceDistance);
+            const savedSimulationMode = localStorage.getItem(LOCAL_STORAGE_KEYS.simulationMode);
 
             if (savedRoutingMode) {
                 routingMode = savedRoutingMode;
@@ -820,10 +1035,21 @@
                     speechRate = parsedSpeechRate;
                 }
             }
+            if (savedAnnounceDistance) {
+                const parsedAnnounceDistance = parseInt(savedAnnounceDistance, 10);
+                if (!Number.isNaN(parsedAnnounceDistance)) {
+                    announceDistance = parsedAnnounceDistance;
+                }
+            }
+            if (savedSimulationMode) {
+                simulationMode = savedSimulationMode === 'true';
+            }
 
             document.getElementById('routingMode').value = routingMode;
             document.getElementById('googleRoutesApiKey').value = googleRoutesApiKey;
             document.getElementById('speechRate').value = speechRate.toFixed(2).replace(/0$/, '').replace(/\.$/, '.0');
+            document.getElementById('announceDistance').value = announceDistance;
+            document.getElementById('simulationMode').checked = simulationMode;
         }
 
         function saveRoutingSettings() {
@@ -831,6 +1057,8 @@
             googleRoutesApiKey = document.getElementById('googleRoutesApiKey').value.trim();
             selectedVoiceName = document.getElementById('voiceSelect').value;
             speechRate = parseFloat(document.getElementById('speechRate').value) || 1.0;
+            announceDistance = parseInt(document.getElementById('announceDistance').value, 10) || 50;
+            simulationMode = document.getElementById('simulationMode').checked;
 
             localStorage.setItem(LOCAL_STORAGE_KEYS.routingMode, routingMode);
             if (googleRoutesApiKey) {
@@ -844,6 +1072,9 @@
                 localStorage.removeItem(LOCAL_STORAGE_KEYS.voiceName);
             }
             localStorage.setItem(LOCAL_STORAGE_KEYS.speechRate, speechRate.toString());
+            localStorage.setItem(LOCAL_STORAGE_KEYS.announceDistance, announceDistance.toString());
+            localStorage.setItem(LOCAL_STORAGE_KEYS.simulationMode, simulationMode ? 'true' : 'false');
+            updateHomeSummary();
         }
 
         function populateVoiceSelect() {
@@ -1163,6 +1394,160 @@
             showStatus('Voice sample played', 1500);
         }
 
+        function getRoutePayload() {
+            return {
+                name: routeName,
+                stations: route,
+                cuesByTarget: routeCuesByTarget,
+                track: routeTrack
+            };
+        }
+
+        function persistSession(paused = false) {
+            if (!route || route.length === 0) {
+                return;
+            }
+
+            const payload = {
+                routeName,
+                routeSourceKey,
+                routeData: getRoutePayload(),
+                currentStationIndex,
+                completedStations,
+                navigationStarted,
+                paused,
+                simulationMode,
+                announceDistance,
+                savedAt: new Date().toISOString()
+            };
+
+            routeSession = payload;
+            localStorage.setItem(LOCAL_STORAGE_KEYS.session, JSON.stringify(payload));
+            renderResumeCard();
+        }
+
+        function clearRouteSession() {
+            routeSession = null;
+            localStorage.removeItem(LOCAL_STORAGE_KEYS.session);
+            renderResumeCard();
+        }
+
+        function loadSavedSession() {
+            const raw = localStorage.getItem(LOCAL_STORAGE_KEYS.session);
+            if (!raw) {
+                routeSession = null;
+                return;
+            }
+
+            try {
+                routeSession = JSON.parse(raw);
+            } catch (error) {
+                console.warn('Failed to parse saved route session', error);
+                clearRouteSession();
+                return;
+            }
+
+            if (routeSession?.routeData) {
+                document.getElementById('routeInput').value = JSON.stringify(routeSession.routeData, null, 2);
+            }
+            if (routeSession?.routeSourceKey) {
+                document.getElementById('demoRouteSelect').value = routeSession.routeSourceKey;
+            }
+        }
+
+        function renderResumeCard() {
+            const resumeCard = document.getElementById('resumeCard');
+            if (!routeSession || !routeSession.routeData || !Array.isArray(routeSession.routeData.stations)) {
+                resumeCard.style.display = 'none';
+                return;
+            }
+
+            const totalStations = routeSession.routeData.stations.length;
+            if (!totalStations || routeSession.currentStationIndex >= totalStations) {
+                resumeCard.style.display = 'none';
+                return;
+            }
+            const nextStation = routeSession.routeData.stations[routeSession.currentStationIndex];
+            const modeText = routeSession.paused ? 'Paused' : 'Ready to resume';
+            document.getElementById('resumeRouteName').textContent = routeSession.routeName || 'Saved route';
+            document.getElementById('resumeMeta').textContent = `${modeText}. Station ${Math.min(routeSession.currentStationIndex + 1, totalStations)} of ${totalStations}${nextStation ? `, next up ${nextStation.name}` : ''}.`;
+            resumeCard.style.display = 'block';
+        }
+
+        function updateHomeSummary() {
+            const select = document.getElementById('demoRouteSelect');
+            const selectedOption = select.options[select.selectedIndex];
+            const label = selectedOption && selectedOption.value ? selectedOption.textContent : 'No route selected';
+            const routingSummary = isGoogleRoutingEnabled() ? 'Live Google rerouting is ready.' : 'Saved cues will be used until a Google Routes key is added.';
+
+            document.getElementById('heroRouteName').textContent = label;
+            document.getElementById('heroRouteSummary').textContent = `${routingSummary} Use the gear for voice, simulation, and ride settings.`;
+            document.getElementById('navSummary').style.display = 'block';
+            document.getElementById('navSummary').textContent = `${routingSummary} Announce distance is ${announceDistance} meters${simulationMode ? ' and simulation mode is on.' : '.'}`;
+        }
+
+        function openSettingsModal() {
+            document.getElementById('settingsModalBackdrop').classList.add('show');
+            document.getElementById('settingsModalBackdrop').setAttribute('aria-hidden', 'false');
+        }
+
+        function closeSettingsModal() {
+            saveRoutingSettings();
+            document.getElementById('settingsModalBackdrop').classList.remove('show');
+            document.getElementById('settingsModalBackdrop').setAttribute('aria-hidden', 'true');
+        }
+
+        function stopGpsWatch() {
+            if (watchId !== null && navigator.geolocation) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+        }
+
+        function showHomeScreen() {
+            document.getElementById('setupScreen').style.display = 'block';
+            document.getElementById('navScreen').style.display = 'none';
+            updateHomeSummary();
+            renderResumeCard();
+        }
+
+        function showNavScreen() {
+            document.getElementById('setupScreen').style.display = 'none';
+            document.getElementById('navScreen').style.display = 'flex';
+        }
+
+        function loadRoutePayloadIntoState(parsed, sourceKey = '') {
+            if (Array.isArray(parsed)) {
+                route = parsed;
+                routeName = 'Custom Route';
+                routeCuesByTarget = {};
+                routeTrack = [];
+            } else {
+                route = Array.isArray(parsed.stations) ? parsed.stations : [];
+                routeName = parsed.name || 'Custom Route';
+                routeCuesByTarget = parsed.cuesByTarget || {};
+                routeTrack = Array.isArray(parsed.track) ? parsed.track : [];
+            }
+
+            routeSourceKey = sourceKey;
+            document.getElementById('totalStations').textContent = route.length;
+            document.querySelector('.route-title').textContent = routeName;
+        }
+
+        function resetLegState() {
+            activeLegTrack = [];
+            activeLegCues = [];
+            activeLegSource = 'saved';
+            announcedCuePreviewIds = new Set();
+            announcedCueNowIds = new Set();
+            hasAnnounced = false;
+            lastDistance = Infinity;
+            lastOffRouteWarningAt = 0;
+            lastRejoinAnnouncementAt = 0;
+            hasSpokenDirectGuidanceThisOffRoute = false;
+            isRecalculating = false;
+        }
+
         function formatCuePreview(cue, remainingMeters) {
             const rounded = Math.max(10, Math.round(remainingMeters / 10) * 10);
             return `In ${rounded} meters, ${cue.text}`;
@@ -1355,10 +1740,12 @@
             const beginRouteBtn = document.getElementById('beginRouteBtn');
             const dockedBtn = document.getElementById('dockedBtn');
             const skipStationBtn = document.getElementById('skipStationBtn');
+            const pauseRouteBtn = document.getElementById('pauseRouteBtn');
             const simPanel = document.getElementById('simPanel');
             const routeIsActive = navigationStarted && currentStationIndex < route.length;
 
             beginRouteBtn.style.display = navigationStarted || currentStationIndex >= route.length ? 'none' : 'block';
+            pauseRouteBtn.style.display = routeIsActive ? 'block' : 'none';
             dockedBtn.disabled = !routeIsActive;
             skipStationBtn.disabled = !routeIsActive;
             simPanel.style.display = simulationMode ? 'block' : 'none';
@@ -1437,6 +1824,7 @@
                 }
 
                 document.getElementById('routeInput').value = JSON.stringify(routePayload, null, 2);
+                updateHomeSummary();
                 if (!silent) {
                     showStatus(`Loaded ${routePayload.name || sample.name}`, 2000);
                 }
@@ -1462,58 +1850,36 @@
         async function startNavigation() {
             try {
                 const routeInputEl = document.getElementById('routeInput');
-                await loadDemoRoute(true);
+                const selectedPreset = document.getElementById('demoRouteSelect').value;
+                if (selectedPreset) {
+                    await loadDemoRoute(true);
+                }
 
                 const routeText = routeInputEl.value;
                 const parsed = JSON.parse(routeText);
-                announceDistance = parseInt(document.getElementById('announceDistance').value) || 50;
-
-                if (Array.isArray(parsed)) {
-                    route = parsed;
-                    routeName = 'Custom Route';
-                    routeCuesByTarget = {};
-                    routeTrack = [];
-                } else {
-                    route = Array.isArray(parsed.stations) ? parsed.stations : [];
-                    routeName = parsed.name || 'Custom Route';
-                    routeCuesByTarget = parsed.cuesByTarget || {};
-                    routeTrack = Array.isArray(parsed.track) ? parsed.track : [];
-                }
+                saveRoutingSettings();
+                loadRoutePayloadIntoState(parsed, selectedPreset);
 
                 if (!route || route.length === 0) {
                     alert('Please enter valid route data');
                     return;
                 }
 
-                simulationMode = document.getElementById('simulationMode').checked;
-                saveRoutingSettings();
-
                 // Initialize
-                activeLegTrack = [];
-                activeLegCues = [];
-                activeLegSource = 'saved';
                 currentStationIndex = 0;
                 completedStations = 0;
-                announcedCuePreviewIds = new Set();
-                announcedCueNowIds = new Set();
-                hasAnnounced = false;
-                lastDistance = Infinity;
-                lastOffRouteWarningAt = 0;
-                lastRejoinAnnouncementAt = 0;
-                hasSpokenDirectGuidanceThisOffRoute = false;
-                isRecalculating = false;
+                resetLegState();
                 hasFitMap = false;
                 navigationStarted = false;
                 initialStartPromptSpoken = false;
-                document.getElementById('totalStations').textContent = route.length;
-                document.querySelector('.route-title').textContent = routeName;
+                stopGpsWatch();
+                synth.cancel();
 
-                // Hide setup, show nav
-                document.getElementById('setupScreen').style.display = 'none';
-                document.getElementById('navScreen').style.display = 'flex';
+                showNavScreen();
                 ensureMap();
                 refreshMap(true);
                 updateActionButtons();
+                persistSession(false);
 
                 if (simulationMode) {
                     const startPoint = routeTrack[0] || route[0];
@@ -1542,6 +1908,104 @@
             }
         }
 
+        function resumeSavedSession() {
+            if (!routeSession || !routeSession.routeData) {
+                showStatus('No saved route to resume', 2000);
+                return;
+            }
+
+            saveRoutingSettings();
+            loadRoutePayloadIntoState(routeSession.routeData, routeSession.routeSourceKey || '');
+            currentStationIndex = Math.min(routeSession.currentStationIndex || 0, Math.max(0, route.length - 1));
+            completedStations = routeSession.completedStations || 0;
+            navigationStarted = true;
+            initialStartPromptSpoken = false;
+            simulationMode = routeSession.simulationMode ?? simulationMode;
+            document.getElementById('simulationMode').checked = simulationMode;
+            announceDistance = routeSession.announceDistance || announceDistance;
+            document.getElementById('announceDistance').value = announceDistance;
+            document.getElementById('routeInput').value = JSON.stringify(routeSession.routeData, null, 2);
+            if (routeSession.routeSourceKey) {
+                document.getElementById('demoRouteSelect').value = routeSession.routeSourceKey;
+            }
+            resetLegState();
+            hasFitMap = false;
+
+            showNavScreen();
+            ensureMap();
+            refreshMap(true);
+            updateActionButtons();
+
+            if (simulationMode) {
+                const anchor = route[currentStationIndex] || route[route.length - 1];
+                if (anchor) {
+                    setSimulatedPosition(anchor.lat, anchor.lng, 'Resumed saved simulation session');
+                }
+                document.getElementById('gpsStatus').classList.remove('inactive');
+                updateDisplay();
+            } else if ('geolocation' in navigator) {
+                stopGpsWatch();
+                watchId = navigator.geolocation.watchPosition(
+                    onPositionUpdate,
+                    onPositionError,
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 0,
+                        timeout: 5000
+                    }
+                );
+                updateDisplay();
+            }
+
+            persistSession(false);
+            refreshCurrentLegRoute({ announceLoaded: true });
+        }
+
+        function pauseNavigation() {
+            if (!route || route.length === 0) {
+                return;
+            }
+
+            synth.cancel();
+            navigationStarted = false;
+            stopGpsWatch();
+            persistSession(true);
+            showStatus('Route paused. Resume whenever you are ready.', 2500);
+            showHomeScreen();
+        }
+
+        function startOverRoute() {
+            synth.cancel();
+            stopGpsWatch();
+            clearRouteSession();
+            navigationStarted = false;
+            userPosition = null;
+            currentStationIndex = 0;
+            completedStations = 0;
+            route = [];
+            routeName = 'Custom Route';
+            routeCuesByTarget = {};
+            routeTrack = [];
+            routeSourceKey = '';
+            resetLegState();
+            hasFitMap = false;
+            if (routeLine) {
+                routeLine.remove();
+                routeLine = null;
+            }
+            stationMarkers.forEach(marker => marker.remove());
+            stationMarkers = [];
+            if (userMarker) {
+                userMarker.remove();
+                userMarker = null;
+            }
+            document.getElementById('currentIndex').textContent = '1';
+            document.getElementById('completedCount').textContent = '0';
+            document.getElementById('totalStations').textContent = '0';
+            document.querySelector('.route-title').textContent = 'Route Progress';
+            showHomeScreen();
+        }
+
         // Position update
         function onPositionUpdate(position) {
             if (simulationMode) {
@@ -1556,6 +2020,9 @@
             updateUserMarker();
             updateDisplay();
             speakInitialStartPrompt();
+            if (navigationStarted) {
+                persistSession(false);
+            }
         }
 
         function onPositionError(error) {
@@ -1780,6 +2247,7 @@
             updateDisplay();
             speakInitialStartPrompt();
             refreshCurrentLegRoute({ announceLoaded: true });
+            persistSession(false);
         }
 
         // Confirm docked
@@ -1792,21 +2260,14 @@
 
             completedStations++;
             currentStationIndex++;
-            activeLegTrack = [];
-            activeLegCues = [];
-            activeLegSource = 'saved';
-            hasAnnounced = false;
-            lastDistance = Infinity;
-            announcedCuePreviewIds = new Set();
-            announcedCueNowIds = new Set();
-            hasSpokenDirectGuidanceThisOffRoute = false;
-            isRecalculating = false;
+            resetLegState();
 
             if (currentStationIndex >= route.length) {
                 // Route complete
                 speak('Route complete. All stations visited.');
                 showStatus('🎉 Route Complete!', 3000);
                 updateActionButtons();
+                clearRouteSession();
                 setTimeout(() => {
                     if (confirm('Route complete! Start a new route?')) {
                         location.reload();
@@ -1816,6 +2277,7 @@
                 refreshMap(false);
                 updateDisplay();
                 refreshCurrentLegRoute();
+                persistSession(false);
                 setTimeout(() => {
                     const nextStation = route[currentStationIndex];
                     const nextCue = getActiveCue();
@@ -1838,30 +2300,19 @@
             showStatus('Station skipped', 2000);
 
             currentStationIndex++;
-            activeLegTrack = [];
-            activeLegCues = [];
-            activeLegSource = 'saved';
-            hasAnnounced = false;
-            lastDistance = Infinity;
-            announcedCuePreviewIds = new Set();
-            announcedCueNowIds = new Set();
-            hasSpokenDirectGuidanceThisOffRoute = false;
-            isRecalculating = false;
+            resetLegState();
 
             if (currentStationIndex >= route.length) {
                 speak('Route complete');
                 showStatus('Route Complete', 3000);
                 updateActionButtons();
+                clearRouteSession();
             } else {
                 refreshMap(false);
                 updateDisplay();
                 refreshCurrentLegRoute();
+                persistSession(false);
             }
-        }
-
-        // Show station list (future feature)
-        function showStationList() {
-            showStatus('Station list coming soon...', 2000);
         }
 
         // Update display periodically
@@ -1872,27 +2323,44 @@
         }, 1000);
 
         document.getElementById('startNavigationBtn').addEventListener('click', startNavigation);
+        document.getElementById('resumeSessionBtn').addEventListener('click', resumeSavedSession);
+        document.getElementById('startOverBtn').addEventListener('click', startOverRoute);
+        document.getElementById('pauseRouteBtn').addEventListener('click', pauseNavigation);
         document.getElementById('beginRouteBtn').addEventListener('click', beginRoute);
         document.getElementById('dockedBtn').addEventListener('click', confirmDocked);
         document.getElementById('skipStationBtn').addEventListener('click', skipStation);
-        document.getElementById('showStationListBtn').addEventListener('click', showStationList);
         document.getElementById('simNextCueBtn').addEventListener('click', jumpToNextCue);
         document.getElementById('simNearStationBtn').addEventListener('click', jumpNearStation);
         document.getElementById('simOffRouteBtn').addEventListener('click', forceOffRoute);
+        document.getElementById('settingsToggleBtn').addEventListener('click', openSettingsModal);
+        document.getElementById('openSettingsBtn').addEventListener('click', openSettingsModal);
+        document.getElementById('closeSettingsBtn').addEventListener('click', closeSettingsModal);
+        document.getElementById('closeSettingsPrimaryBtn').addEventListener('click', closeSettingsModal);
         document.getElementById('routingMode').addEventListener('change', saveRoutingSettings);
         document.getElementById('googleRoutesApiKey').addEventListener('change', saveRoutingSettings);
         document.getElementById('googleRoutesApiKey').addEventListener('input', saveRoutingSettings);
         document.getElementById('voiceSelect').addEventListener('change', saveRoutingSettings);
         document.getElementById('speechRate').addEventListener('change', saveRoutingSettings);
         document.getElementById('speechRate').addEventListener('input', saveRoutingSettings);
+        document.getElementById('announceDistance').addEventListener('change', saveRoutingSettings);
+        document.getElementById('announceDistance').addEventListener('input', saveRoutingSettings);
+        document.getElementById('simulationMode').addEventListener('change', saveRoutingSettings);
         document.getElementById('testVoiceBtn').addEventListener('click', testVoiceSample);
+        document.getElementById('settingsModalBackdrop').addEventListener('click', (event) => {
+            if (event.target.id === 'settingsModalBackdrop') {
+                closeSettingsModal();
+            }
+        });
 
         loadRoutingSettings();
+        loadSavedSession();
         populateVoiceSelect();
         if (typeof synth.onvoiceschanged !== 'undefined') {
             synth.onvoiceschanged = populateVoiceSelect;
         }
         initializeDefaultRoute();
+        renderResumeCard();
+        updateHomeSummary();
     </script>
 </body>
 </html>
