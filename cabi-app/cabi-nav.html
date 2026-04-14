@@ -628,7 +628,7 @@
     <!-- Setup Screen -->
     <div id="setupScreen" class="setup-screen container">
         <h1>CaBi Navigator</h1>
-        <div class="version-badge">Test Build 2026-04-14 10:18 EDT</div>
+        <div class="version-badge">Test Build 2026-04-14 10:28 EDT</div>
         <p>Pick your route and go. Settings, voice, simulation, and API details live behind the gear so the ride flow stays clean.</p>
 
         <div class="home-hero">
@@ -856,6 +856,9 @@
         let isRecalculating = false;
         let lastRejoinAnnouncementAt = 0;
         let hasSpokenDirectGuidanceThisOffRoute = false;
+        let lastReassuranceAt = 0;
+        let lastReassuranceCueId = '';
+        let lastReassuranceRemaining = Infinity;
         let activeRouteRequestId = 0;
         let map = null;
         let routeLine = null;
@@ -1546,6 +1549,9 @@
             lastRejoinAnnouncementAt = 0;
             hasSpokenDirectGuidanceThisOffRoute = false;
             isRecalculating = false;
+            lastReassuranceAt = 0;
+            lastReassuranceCueId = '';
+            lastReassuranceRemaining = Infinity;
         }
 
         function formatCuePreview(cue, remainingMeters) {
@@ -1580,6 +1586,51 @@
                 return Math.max(cueNowDistance, 28);
             }
             return cueNowDistance;
+        }
+
+        function getCueRoadName(cue) {
+            const text = cue?.text || '';
+            const match = text.match(/\b(?:on|onto)\s+(.+?)(?:\s+toward\b|\s+to\b|$)/i);
+            if (match?.[1]) {
+                return match[1].trim();
+            }
+            return '';
+        }
+
+        function formatReassuranceDistance(remainingMeters) {
+            if (remainingMeters >= 1000) {
+                const miles = remainingMeters / 1609.34;
+                return miles >= 0.2
+                    ? `${miles.toFixed(1)} miles`
+                    : `${Math.round(remainingMeters / 10) * 10} meters`;
+            }
+            return `${Math.max(50, Math.round(remainingMeters / 10) * 10)} meters`;
+        }
+
+        function shouldSpeakReassurance(cue, remainingMeters) {
+            if (getCuePriority(cue) !== 'weak') {
+                return false;
+            }
+            if (remainingMeters < 180) {
+                return false;
+            }
+
+            const now = Date.now();
+            if (cue.id !== lastReassuranceCueId) {
+                return true;
+            }
+
+            const distanceDelta = lastReassuranceRemaining - remainingMeters;
+            return now - lastReassuranceAt > 45000 && distanceDelta >= 250;
+        }
+
+        function buildReassurancePrompt(cue, remainingMeters) {
+            const roadName = getCueRoadName(cue);
+            const distanceText = formatReassuranceDistance(remainingMeters);
+            if (roadName) {
+                return `Stay on ${roadName} for ${distanceText}.`;
+            }
+            return `Stay on the current route for ${distanceText}.`;
         }
 
         function isStationCue(cue) {
@@ -2221,7 +2272,12 @@
                 document.getElementById('cueDistance').textContent = `${cueDistance} m away`;
                 cuePanel.style.display = 'block';
 
-                if (cueDistance <= cuePreviewDistance && shouldSpeakCuePreview(activeCue) && !announcedCuePreviewIds.has(activeCue.id)) {
+                if (shouldSpeakReassurance(activeCue, cueDistance)) {
+                    speak(buildReassurancePrompt(activeCue, cueDistance));
+                    lastReassuranceAt = Date.now();
+                    lastReassuranceCueId = activeCue.id;
+                    lastReassuranceRemaining = cueDistance;
+                } else if (cueDistance <= cuePreviewDistance && shouldSpeakCuePreview(activeCue) && !announcedCuePreviewIds.has(activeCue.id)) {
                     speak(formatCuePreview(activeCue, cueDistance));
                     announcedCuePreviewIds.add(activeCue.id);
                 } else if (cueDistance <= getCueNowThreshold(activeCue) && !announcedCueNowIds.has(activeCue.id)) {
