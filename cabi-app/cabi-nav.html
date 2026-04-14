@@ -449,7 +449,7 @@
     <!-- Setup Screen -->
     <div id="setupScreen" class="setup-screen container">
         <h1>CaBi Navigator</h1>
-        <div class="version-badge">Test Build 2026-04-13 B</div>
+        <div class="version-badge">Test Build 2026-04-14 06:38 EDT</div>
         <p>Load your route as JSON, review the first stop, then tap Start to begin live guidance.</p>
 
         <div class="settings-group">
@@ -1322,10 +1322,6 @@
                     showStatus('⚠️ Off route - switching to direct guidance', 4000);
                     lastOffRouteWarningAt = now;
                 }
-                isRecalculating = true;
-                cuePanel.style.display = 'none';
-                speakDirectGuidance(station, distance, direction);
-            } else if (!progress && distance > cuePreviewDistance * 1.5) {
                 isRecalculating = true;
                 cuePanel.style.display = 'none';
                 speakDirectGuidance(station, distance, direction);
