@@ -628,7 +628,7 @@
     <!-- Setup Screen -->
     <div id="setupScreen" class="setup-screen container">
         <h1>CaBi Navigator</h1>
-        <div class="version-badge">Test Build 2026-04-14 10:02 EDT</div>
+        <div class="version-badge">Test Build 2026-04-14 10:18 EDT</div>
         <p>Pick your route and go. Settings, voice, simulation, and API details live behind the gear so the ride flow stays clean.</p>
 
         <div class="home-hero">
@@ -1553,8 +1553,44 @@
             return `In ${rounded} meters, ${cue.text}`;
         }
 
+        function getCuePriority(cue) {
+            const text = (cue?.text || '').toLowerCase();
+            if (!text) {
+                return 'weak';
+            }
+            if (/\bturn\b|\bslight\b|\bsharp\b|\bmerge\b|\bkeep left\b|\bkeep right\b|\bu-turn\b|\broundabout\b/.test(text)) {
+                return 'turn';
+            }
+            if (/\bcontinue\b|\bhead\b|\bproceed\b/.test(text)) {
+                return 'weak';
+            }
+            return 'normal';
+        }
+
+        function shouldSpeakCuePreview(cue) {
+            return getCuePriority(cue) !== 'weak';
+        }
+
+        function getCueNowThreshold(cue) {
+            const priority = getCuePriority(cue);
+            if (priority === 'turn') {
+                return Math.max(cueNowDistance, 38);
+            }
+            if (priority === 'normal') {
+                return Math.max(cueNowDistance, 28);
+            }
+            return cueNowDistance;
+        }
+
         function isStationCue(cue) {
             return (cue.text || '').toLowerCase().startsWith('cabi station:');
+        }
+
+        function blurActiveInput() {
+            const active = document.activeElement;
+            if (active && typeof active.blur === 'function') {
+                active.blur();
+            }
         }
 
         function getTrackProgress() {
@@ -1849,6 +1885,8 @@
         // Start navigation
         async function startNavigation() {
             try {
+                blurActiveInput();
+                closeSettingsModal();
                 const routeInputEl = document.getElementById('routeInput');
                 const selectedPreset = document.getElementById('demoRouteSelect').value;
                 if (selectedPreset) {
@@ -1861,7 +1899,7 @@
                 loadRoutePayloadIntoState(parsed, selectedPreset);
 
                 if (!route || route.length === 0) {
-                    alert('Please enter valid route data');
+                    showStatus('Please enter valid route data', 2500);
                     return;
                 }
 
@@ -1901,10 +1939,10 @@
                     );
                     updateDisplay();
                 } else {
-                    alert('Geolocation not supported');
+                    showStatus('Geolocation not supported on this device', 3000);
                 }
             } catch (e) {
-                alert('Invalid JSON: ' + e.message);
+                showStatus('Invalid route data. Check the JSON and try again.', 3000);
             }
         }
 
@@ -1914,6 +1952,8 @@
                 return;
             }
 
+            blurActiveInput();
+            closeSettingsModal();
             saveRoutingSettings();
             loadRoutePayloadIntoState(routeSession.routeData, routeSession.routeSourceKey || '');
             currentStationIndex = Math.min(routeSession.currentStationIndex || 0, Math.max(0, route.length - 1));
@@ -2181,10 +2221,10 @@
                 document.getElementById('cueDistance').textContent = `${cueDistance} m away`;
                 cuePanel.style.display = 'block';
 
-                if (cueDistance <= cuePreviewDistance && !announcedCuePreviewIds.has(activeCue.id)) {
+                if (cueDistance <= cuePreviewDistance && shouldSpeakCuePreview(activeCue) && !announcedCuePreviewIds.has(activeCue.id)) {
                     speak(formatCuePreview(activeCue, cueDistance));
                     announcedCuePreviewIds.add(activeCue.id);
-                } else if (cueDistance <= cueNowDistance && !announcedCueNowIds.has(activeCue.id)) {
+                } else if (cueDistance <= getCueNowThreshold(activeCue) && !announcedCueNowIds.has(activeCue.id)) {
                     speak(activeCue.text);
                     announcedCueNowIds.add(activeCue.id);
                 }
@@ -2235,6 +2275,7 @@
                 return;
             }
 
+            blurActiveInput();
             navigationStarted = true;
             initialStartPromptSpoken = false;
             hasAnnounced = false;
@@ -2269,10 +2310,8 @@
                 updateActionButtons();
                 clearRouteSession();
                 setTimeout(() => {
-                    if (confirm('Route complete! Start a new route?')) {
-                        location.reload();
-                    }
-                }, 3000);
+                    startOverRoute();
+                }, 2000);
             } else {
                 refreshMap(false);
                 updateDisplay();
