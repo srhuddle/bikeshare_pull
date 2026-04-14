@@ -449,7 +449,7 @@
     <!-- Setup Screen -->
     <div id="setupScreen" class="setup-screen container">
         <h1>CaBi Navigator</h1>
-        <div class="version-badge">Test Build 2026-04-14 08:10 EDT</div>
+        <div class="version-badge">Test Build 2026-04-14 08:16 EDT</div>
         <p>Load your route as JSON, review the first stop, then tap Start to begin live guidance.</p>
 
         <div class="settings-group">
@@ -598,8 +598,7 @@
         let lastOffRouteWarningAt = 0;
         let isRecalculating = false;
         let lastRejoinAnnouncementAt = 0;
-        let lastDirectGuidanceAt = 0;
-        let lastDirectGuidanceSignature = '';
+        let hasSpokenDirectGuidanceThisOffRoute = false;
         let map = null;
         let routeLine = null;
         let stationMarkers = [];
@@ -608,7 +607,6 @@
         let navigationStarted = false;
         let initialStartPromptSpoken = false;
         const rejoinThreshold = 30; // meters
-        const directGuidanceIntervalMs = 25000;
 
         const SAMPLE_ROUTES = {
             dupontMicro: {
@@ -1086,8 +1084,7 @@
                 lastDistance = Infinity;
                 lastOffRouteWarningAt = 0;
                 lastRejoinAnnouncementAt = 0;
-                lastDirectGuidanceAt = 0;
-                lastDirectGuidanceSignature = '';
+                hasSpokenDirectGuidanceThisOffRoute = false;
                 isRecalculating = false;
                 hasFitMap = false;
                 navigationStarted = false;
@@ -1185,17 +1182,13 @@
         }
 
         function speakDirectGuidance(station, distance, direction) {
-            const now = Date.now();
-            const distanceBucket = Math.max(25, Math.round(distance / 25) * 25);
-            const signature = `${station.name}|${direction}|${distanceBucket}`;
-            if (signature === lastDirectGuidanceSignature && now - lastDirectGuidanceAt < directGuidanceIntervalMs) {
+            if (hasSpokenDirectGuidanceThisOffRoute) {
                 return;
             }
 
             speak(`Recalculating. ${station.name} is ${distance} meters ${direction}. Head ${direction}.`);
             showStatus(`Recalculating toward ${station.name}`, 3000);
-            lastDirectGuidanceAt = now;
-            lastDirectGuidanceSignature = signature;
+            hasSpokenDirectGuidanceThisOffRoute = true;
         }
 
         function jumpToNextCue() {
@@ -1334,7 +1327,7 @@
                     lastRejoinAnnouncementAt = now;
                 }
                 lastOffRouteWarningAt = 0;
-                lastDirectGuidanceSignature = '';
+                hasSpokenDirectGuidanceThisOffRoute = false;
             }
 
             // Audio announcements
@@ -1364,8 +1357,7 @@
             lastDistance = Infinity;
             announcedCuePreviewIds = new Set();
             announcedCueNowIds = new Set();
-            lastDirectGuidanceAt = 0;
-            lastDirectGuidanceSignature = '';
+            hasSpokenDirectGuidanceThisOffRoute = false;
             isRecalculating = false;
             updateActionButtons();
             updateDisplay();
@@ -1386,8 +1378,7 @@
             lastDistance = Infinity;
             announcedCuePreviewIds = new Set();
             announcedCueNowIds = new Set();
-            lastDirectGuidanceAt = 0;
-            lastDirectGuidanceSignature = '';
+            hasSpokenDirectGuidanceThisOffRoute = false;
             isRecalculating = false;
 
             if (currentStationIndex >= route.length) {
@@ -1429,8 +1420,7 @@
             lastDistance = Infinity;
             announcedCuePreviewIds = new Set();
             announcedCueNowIds = new Set();
-            lastDirectGuidanceAt = 0;
-            lastDirectGuidanceSignature = '';
+            hasSpokenDirectGuidanceThisOffRoute = false;
             isRecalculating = false;
 
             if (currentStationIndex >= route.length) {
