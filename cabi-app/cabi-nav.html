@@ -561,7 +561,7 @@
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.72);
-            z-index: 300;
+            z-index: 1000;
             display: none;
             align-items: stretch;
             justify-content: flex-end;
@@ -628,13 +628,17 @@
         @media (max-width: 430px) {
             .modal-backdrop {
                 justify-content: stretch;
+                background: #0a0a0a;
             }
 
             .settings-modal {
                 width: 100%;
                 max-width: none;
+                height: 100dvh;
+                min-height: 100dvh;
                 border-left: none;
                 padding: 18px 16px 20px;
+                background: #0a0a0a;
             }
 
             .modal-header {
@@ -770,7 +774,7 @@
     <!-- Setup Screen -->
     <div id="setupScreen" class="setup-screen container">
         <h1>CaBi Navigator</h1>
-        <div class="version-badge">Test Build 2026-04-16 08:17 EDT</div>
+        <div class="version-badge">Test Build 2026-04-16 08:24 EDT</div>
 
         <div class="home-hero">
             <div class="hero-label">Ready To Roll</div>
@@ -2464,7 +2468,7 @@
                 isRecalculating = true;
                 cuePanel.style.display = 'none';
                 speakDirectGuidance(station, distance, direction);
-            } else if (isRecalculating && (!progress || progress.offRouteDistance <= rejoinThreshold)) {
+            } else if (isRecalculating && lastOffRouteWarningAt > 0 && (!progress || progress.offRouteDistance <= rejoinThreshold)) {
                 const now = Date.now();
                 isRecalculating = false;
                 if (now - lastRejoinAnnouncementAt > 5000) {
