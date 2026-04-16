@@ -774,7 +774,7 @@
     <!-- Setup Screen -->
     <div id="setupScreen" class="setup-screen container">
         <h1>CaBi Navigator</h1>
-        <div class="version-badge">Test Build 2026-04-16 08:24 EDT</div>
+        <div class="version-badge">Build 2026-04-16 08:31 EDT • 426f7d2</div>
 
         <div class="home-hero">
             <div class="hero-label">Ready To Roll</div>
@@ -2468,7 +2468,7 @@
                 isRecalculating = true;
                 cuePanel.style.display = 'none';
                 speakDirectGuidance(station, distance, direction);
-            } else if (isRecalculating && lastOffRouteWarningAt > 0 && (!progress || progress.offRouteDistance <= rejoinThreshold)) {
+            } else if (isRecalculating && lastOffRouteWarningAt > 0 && progress && progress.offRouteDistance <= rejoinThreshold) {
                 const now = Date.now();
                 isRecalculating = false;
                 if (now - lastRejoinAnnouncementAt > 5000) {
