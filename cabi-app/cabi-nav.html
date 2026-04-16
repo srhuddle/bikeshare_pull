@@ -774,7 +774,7 @@
     <!-- Setup Screen -->
     <div id="setupScreen" class="setup-screen container">
         <h1>CaBi Navigator</h1>
-        <div class="version-badge">Build 2026-04-16 08:33 EDT • 52219db</div>
+        <div class="version-badge">Build 2026-04-16 13:18 EDT</div>
 
         <div class="home-hero">
             <div class="hero-label">Ready To Roll</div>
@@ -1335,6 +1335,17 @@
 
         function isGoogleRoutingEnabled() {
             return routingMode === 'google' && !!googleRoutesApiKey;
+        }
+
+        function hasActiveLegTrack() {
+            return Array.isArray(activeLegTrack) && activeLegTrack.length > 1;
+        }
+
+        function canRunOffRouteCheck() {
+            if (isGoogleRoutingEnabled()) {
+                return hasActiveLegTrack();
+            }
+            return getActiveTrack().length > 1;
         }
 
         function getActiveTrack() {
@@ -2402,7 +2413,7 @@
                 station.lng
             ) : null;
             const direction = hasGps ? getDirection(bearing) : 'ahead';
-            const progress = navigationStarted ? getTrackProgress() : null;
+            const progress = navigationStarted && canRunOffRouteCheck() ? getTrackProgress() : null;
 
             // Update UI
             document.getElementById('stationName').textContent = station.name;
