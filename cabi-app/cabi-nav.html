@@ -741,7 +741,7 @@
     <!-- Setup Screen -->
     <div id="setupScreen" class="setup-screen container">
         <h1>CaBi Navigator</h1>
-        <div class="version-badge">Test Build 2026-04-14 10:45 EDT</div>
+        <div class="version-badge">Test Build 2026-04-16 08:08 EDT</div>
 
         <div class="home-hero">
             <div class="hero-label">Ready To Roll</div>
@@ -896,6 +896,15 @@
             </div>
 
             <div class="settings-group">
+                <label>Cue Mode</label>
+                <select id="cueMode" class="settings-input">
+                    <option value="enhanced">Enhanced</option>
+                    <option value="raw">Raw Google</option>
+                </select>
+                <div class="helper-text">Raw Google speaks the returned Google step instructions with minimal app tuning. Enhanced keeps the current filtering and reassurance prompts.</div>
+            </div>
+
+            <div class="settings-group">
                 <label>Google Routes API Key</label>
                 <input type="password" id="googleRoutesApiKey" class="settings-input" placeholder="Paste your own Google Routes key">
                 <div class="helper-text">Stored only in this browser via localStorage. Restrict the key to Routes API and this site origin.</div>
@@ -952,6 +961,7 @@
         let watchId = null;
         let simulationMode = false;
         let routingMode = 'google';
+        let cueMode = 'enhanced';
         let googleRoutesApiKey = '';
         let selectedVoiceName = '';
         let speechRate = 1.0;
@@ -984,6 +994,7 @@
         const rejoinThreshold = 30; // meters
         const LOCAL_STORAGE_KEYS = {
             routingMode: 'cabi_nav_routing_mode',
+            cueMode: 'cabi_nav_cue_mode',
             googleKey: 'cabi_nav_google_routes_api_key',
             voiceName: 'cabi_nav_voice_name',
             speechRate: 'cabi_nav_speech_rate',
@@ -1129,6 +1140,7 @@
 
         function loadRoutingSettings() {
             const savedRoutingMode = localStorage.getItem(LOCAL_STORAGE_KEYS.routingMode);
+            const savedCueMode = localStorage.getItem(LOCAL_STORAGE_KEYS.cueMode);
             const savedGoogleKey = localStorage.getItem(LOCAL_STORAGE_KEYS.googleKey);
             const savedVoiceName = localStorage.getItem(LOCAL_STORAGE_KEYS.voiceName);
             const savedSpeechRate = localStorage.getItem(LOCAL_STORAGE_KEYS.speechRate);
@@ -1137,6 +1149,9 @@
 
             if (savedRoutingMode) {
                 routingMode = savedRoutingMode;
+            }
+            if (savedCueMode) {
+                cueMode = savedCueMode;
             }
             if (savedGoogleKey) {
                 googleRoutesApiKey = savedGoogleKey;
@@ -1161,6 +1176,7 @@
             }
 
             document.getElementById('routingMode').value = routingMode;
+            document.getElementById('cueMode').value = cueMode;
             document.getElementById('googleRoutesApiKey').value = googleRoutesApiKey;
             document.getElementById('speechRate').value = speechRate.toFixed(2).replace(/0$/, '').replace(/\.$/, '.0');
             document.getElementById('announceDistance').value = announceDistance;
@@ -1169,6 +1185,7 @@
 
         function saveRoutingSettings() {
             routingMode = document.getElementById('routingMode').value;
+            cueMode = document.getElementById('cueMode').value;
             googleRoutesApiKey = document.getElementById('googleRoutesApiKey').value.trim();
             selectedVoiceName = document.getElementById('voiceSelect').value;
             speechRate = parseFloat(document.getElementById('speechRate').value) || 1.0;
@@ -1176,6 +1193,7 @@
             simulationMode = document.getElementById('simulationMode').checked;
 
             localStorage.setItem(LOCAL_STORAGE_KEYS.routingMode, routingMode);
+            localStorage.setItem(LOCAL_STORAGE_KEYS.cueMode, cueMode);
             if (googleRoutesApiKey) {
                 localStorage.setItem(LOCAL_STORAGE_KEYS.googleKey, googleRoutesApiKey);
             } else {
@@ -1594,11 +1612,12 @@
             const selectedOption = select.options[select.selectedIndex];
             const label = selectedOption && selectedOption.value ? selectedOption.textContent : 'No route selected';
             const routingSummary = isGoogleRoutingEnabled() ? 'Live Google rerouting ready.' : 'Saved cues active until a Google key is added.';
+            const cueSummary = cueMode === 'raw' ? 'Raw Google cues.' : 'Enhanced cues.';
 
             document.getElementById('heroRouteName').textContent = label;
-            document.getElementById('heroRouteSummary').textContent = routingSummary;
+            document.getElementById('heroRouteSummary').textContent = `${routingSummary} ${cueSummary}`;
             document.getElementById('navSummary').style.display = 'block';
-            document.getElementById('navSummary').textContent = `${announceDistance} m announce distance${simulationMode ? ' • simulation on' : ''}`;
+            document.getElementById('navSummary').textContent = `${announceDistance} m announce distance • ${cueMode === 'raw' ? 'raw google' : 'enhanced'}${simulationMode ? ' • simulation on' : ''}`;
         }
 
         function openSettingsModal() {
@@ -1743,6 +1762,10 @@
                 return `Stay on ${roadName} for ${distanceText}.`;
             }
             return `Stay on the current route for ${distanceText}.`;
+        }
+
+        function isRawCueMode() {
+            return cueMode === 'raw';
         }
 
         function isStationCue(cue) {
@@ -2384,15 +2407,15 @@
                 document.getElementById('cueDistance').textContent = `${cueDistance} m away`;
                 cuePanel.style.display = 'block';
 
-                if (shouldSpeakReassurance(activeCue, cueDistance)) {
+                if (!isRawCueMode() && shouldSpeakReassurance(activeCue, cueDistance)) {
                     speak(buildReassurancePrompt(activeCue, cueDistance));
                     lastReassuranceAt = Date.now();
                     lastReassuranceCueId = activeCue.id;
                     lastReassuranceRemaining = cueDistance;
-                } else if (cueDistance <= cuePreviewDistance && shouldSpeakCuePreview(activeCue) && !announcedCuePreviewIds.has(activeCue.id)) {
+                } else if (!isRawCueMode() && cueDistance <= cuePreviewDistance && shouldSpeakCuePreview(activeCue) && !announcedCuePreviewIds.has(activeCue.id)) {
                     speak(formatCuePreview(activeCue, cueDistance));
                     announcedCuePreviewIds.add(activeCue.id);
-                } else if (cueDistance <= getCueNowThreshold(activeCue) && !announcedCueNowIds.has(activeCue.id)) {
+                } else if (cueDistance <= (isRawCueMode() ? cueNowDistance : getCueNowThreshold(activeCue)) && !announcedCueNowIds.has(activeCue.id)) {
                     speak(activeCue.text);
                     announcedCueNowIds.add(activeCue.id);
                 }
@@ -2544,6 +2567,7 @@
         document.getElementById('closeSettingsBtn').addEventListener('click', closeSettingsModal);
         document.getElementById('closeSettingsPrimaryBtn').addEventListener('click', closeSettingsModal);
         document.getElementById('routingMode').addEventListener('change', saveRoutingSettings);
+        document.getElementById('cueMode').addEventListener('change', saveRoutingSettings);
         document.getElementById('googleRoutesApiKey').addEventListener('change', saveRoutingSettings);
         document.getElementById('googleRoutesApiKey').addEventListener('input', saveRoutingSettings);
         document.getElementById('voiceSelect').addEventListener('change', saveRoutingSettings);
