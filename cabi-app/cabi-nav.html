@@ -89,19 +89,41 @@
         }
 
         .route-title {
-            font-size: 14px;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1.8px;
             color: var(--text-dim);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 600;
+        }
+
+        .header-current-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+            align-items: baseline;
+        }
+
+        .header-progress {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .header-station-name {
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1.15;
+            color: var(--text);
         }
 
         .progress-stats {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
-            margin-top: 12px;
+            gap: 24px;
         }
 
         .stat {
@@ -119,35 +141,17 @@
 
         .current-station {
             flex: 1;
-            padding: 22px 20px 10px;
+            padding: 14px 20px 10px;
             background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
         }
 
-        .station-status {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--warn);
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-
-        .station-name {
-            font-size: 30px;
-            font-weight: 800;
-            line-height: 1.15;
-            margin-bottom: 10px;
-            color: var(--text);
-        }
-
         .station-subtitle {
-            font-size: 15px;
+            font-size: 14px;
             color: #b8c0c8;
-            line-height: 1.45;
-            margin-bottom: 18px;
+            line-height: 1.4;
+            margin-bottom: 12px;
         }
 
-        .active-stop-card,
         .station-list-card {
             padding: 16px;
             border-radius: 16px;
@@ -155,11 +159,6 @@
             background: rgba(255, 255, 255, 0.03);
         }
 
-        .active-stop-card {
-            margin-bottom: 14px;
-        }
-
-        .current-target-label,
         .station-list-label {
             font-size: 11px;
             text-transform: uppercase;
@@ -167,19 +166,6 @@
             color: var(--text-dim);
             margin-bottom: 10px;
             font-weight: 700;
-        }
-
-        .current-target-name {
-            font-size: 24px;
-            font-weight: 800;
-            line-height: 1.2;
-            margin-bottom: 8px;
-        }
-
-        .current-target-meta {
-            color: #b4bcc5;
-            font-size: 14px;
-            line-height: 1.45;
         }
 
         .station-list {
@@ -255,6 +241,7 @@
         .station-item.active .station-action-btn {
             border-color: rgba(211, 47, 47, 0.5);
             color: #ffb3b3;
+            background: rgba(211, 47, 47, 0.08);
         }
 
         /* Action Buttons */
@@ -710,8 +697,20 @@
                 margin-bottom: 3px;
             }
 
+            .header-current-row {
+                gap: 8px;
+            }
+
+            .header-progress {
+                font-size: 22px;
+            }
+
+            .header-station-name {
+                font-size: 18px;
+            }
+
             .progress-stats {
-                margin-top: 6px;
+                gap: 16px;
             }
 
             .stat {
@@ -724,36 +723,17 @@
             }
 
             .current-station {
-                padding: 14px 16px 8px;
-            }
-
-            .station-status {
-                font-size: 10px;
-                margin-bottom: 8px;
-            }
-
-            .station-name {
-                font-size: 22px;
-                margin-bottom: 8px;
+                padding: 10px 16px 8px;
             }
 
             .station-subtitle {
-                font-size: 13px;
+                font-size: 12px;
                 line-height: 1.35;
-                margin-bottom: 10px;
+                margin-bottom: 8px;
             }
 
-            .active-stop-card,
             .station-list-card {
                 padding: 14px;
-            }
-
-            .current-target-name {
-                font-size: 20px;
-            }
-
-            .current-target-meta {
-                font-size: 14px;
             }
 
             .station-item-name {
@@ -799,7 +779,7 @@
     <!-- Setup Screen -->
     <div id="setupScreen" class="setup-screen container">
         <h1>CaBi Navigator</h1>
-        <div class="version-badge">Build 2026-04-17 09:08 EDT</div>
+        <div class="version-badge">Build 2026-04-17 06:31 EDT</div>
 
         <div class="home-hero">
             <div class="hero-label">Ready To Roll</div>
@@ -863,29 +843,21 @@
     <!-- Navigation Screen -->
     <div id="navScreen" style="display: none;" class="container">
         <div class="header">
-            <div class="route-title">Route Controller</div>
-            <div class="progress-stats">
-                <div class="stat">
-                    Station
-                    <strong><span id="currentIndex">1</span>/<span id="totalStations">0</span></strong>
-                </div>
+            <div class="route-title" id="headerRouteTitle">Route Controller</div>
+            <div class="header-current-row">
+                <div class="header-progress"><span id="currentIndex">1</span>/<span id="totalStations">0</span></div>
+                <div class="header-station-name" id="headerCurrentStation">Loading...</div>
+                <div class="progress-stats">
                 <div class="stat">
                     Completed
                     <strong><span id="completedCount">0</span></strong>
+                </div>
                 </div>
             </div>
         </div>
 
         <div class="current-station">
-            <div class="station-status" id="stationStatus">ACTIVE TARGET</div>
-            <div class="station-name" id="stationName">Loading...</div>
             <div class="station-subtitle" id="directionHint">Open this stop in Google Maps, ride there, then come back here to mark it complete and advance to the next station.</div>
-
-            <div class="active-stop-card">
-                <div class="current-target-label">Current Stop</div>
-                <div class="current-target-name" id="currentTargetName">17th & P St NW</div>
-                <div class="current-target-meta" id="currentTargetMeta">Stop 1 of 44. Google Maps handles the turn-by-turn for each leg.</div>
-            </div>
 
             <div class="station-list-card">
                 <div class="station-list-label">Station List</div>
@@ -1663,8 +1635,8 @@
                     action.textContent = 'Done';
                     action.disabled = true;
                 } else if (index === currentStationIndex) {
-                    action.textContent = 'Active';
-                    action.addEventListener('click', openActiveStationInGoogleMaps);
+                    action.textContent = 'Done';
+                    action.addEventListener('click', confirmDocked);
                 } else {
                     action.textContent = 'Queued';
                     action.disabled = true;
@@ -2317,23 +2289,18 @@
             document.getElementById('currentIndex').textContent = hasRoute ? Math.min(currentStationIndex + 1, route.length) : '0';
             document.getElementById('completedCount').textContent = completedStations;
             document.getElementById('totalStations').textContent = route.length;
+            document.getElementById('headerRouteTitle').textContent = routeName || 'Route Controller';
 
             if (!hasRoute || !station) {
-                document.getElementById('stationStatus').textContent = 'ROUTE READY';
-                document.getElementById('stationName').textContent = routeName || 'Load a route';
+                document.getElementById('headerCurrentStation').textContent = routeName || 'Load a route';
                 document.getElementById('directionHint').textContent = 'Choose a route to see the station checklist and open the next stop in Google Maps.';
-                document.getElementById('currentTargetName').textContent = 'No active stop';
-                document.getElementById('currentTargetMeta').textContent = 'Load a route to begin.';
                 renderStationList();
                 updateActionButtons();
                 return;
             }
 
-            document.getElementById('stationStatus').textContent = currentStationIndex === route.length - 1 ? 'FINAL TARGET' : 'ACTIVE TARGET';
-            document.getElementById('stationName').textContent = station.name;
-            document.getElementById('directionHint').textContent = 'Open this station in Google Maps, ride there, then come back here and mark it complete to advance.';
-            document.getElementById('currentTargetName').textContent = station.name;
-            document.getElementById('currentTargetMeta').textContent = `Stop ${currentStationIndex + 1} of ${route.length}. Tap Open in Google Maps for bike navigation, then Docked And Next when you arrive.`;
+            document.getElementById('headerCurrentStation').textContent = station.name;
+            document.getElementById('directionHint').textContent = `Open ${station.name} in Google Maps, then tap Done in the station list when you arrive.`;
 
             renderStationList();
             updateActionButtons();
