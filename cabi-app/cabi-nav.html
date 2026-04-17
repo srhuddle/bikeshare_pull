@@ -117,13 +117,9 @@
             margin-top: 4px;
         }
 
-        /* Current Station */
         .current-station {
             flex: 1;
-            padding: 30px 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+            padding: 22px 20px 10px;
             background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
         }
 
@@ -132,46 +128,133 @@
             text-transform: uppercase;
             letter-spacing: 1.5px;
             color: var(--warn);
-            margin-bottom: 16px;
-            font-weight: 600;
+            margin-bottom: 10px;
+            font-weight: 700;
         }
 
         .station-name {
-            font-size: 32px;
+            font-size: 30px;
             font-weight: 800;
-            line-height: 1.2;
-            margin-bottom: 20px;
+            line-height: 1.15;
+            margin-bottom: 10px;
             color: var(--text);
         }
 
-        .distance-info {
-            display: flex;
-            align-items: baseline;
-            gap: 12px;
-            margin-bottom: 30px;
+        .station-subtitle {
+            font-size: 15px;
+            color: #b8c0c8;
+            line-height: 1.45;
+            margin-bottom: 18px;
         }
 
-        .distance {
-            font-size: 48px;
-            font-weight: 900;
-            color: var(--primary);
-            font-variant-numeric: tabular-nums;
-        }
-
-        .distance-unit {
-            font-size: 20px;
-            color: var(--text-dim);
-            font-weight: 600;
-        }
-
-        .direction-hint {
-            font-size: 16px;
-            color: var(--text-dim);
-            padding: 12px 16px;
+        .active-stop-card,
+        .station-list-card {
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
             background: rgba(255, 255, 255, 0.03);
-            border-left: 3px solid var(--primary);
-            border-radius: 4px;
-            margin-bottom: 20px;
+        }
+
+        .active-stop-card {
+            margin-bottom: 14px;
+        }
+
+        .current-target-label,
+        .station-list-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.4px;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .current-target-name {
+            font-size: 24px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 8px;
+        }
+
+        .current-target-meta {
+            color: #b4bcc5;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .station-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .station-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .station-item:first-child {
+            border-top: none;
+            padding-top: 0;
+        }
+
+        .station-marker {
+            width: 26px;
+            height: 26px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 800;
+            border: 1px solid var(--border-strong);
+            color: var(--text-dim);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .station-item.active .station-marker {
+            background: rgba(211, 47, 47, 0.18);
+            border-color: rgba(211, 47, 47, 0.55);
+            color: #ffb3b3;
+        }
+
+        .station-item.completed .station-marker {
+            background: rgba(46, 125, 50, 0.2);
+            border-color: rgba(46, 125, 50, 0.5);
+            color: #9ee0a4;
+        }
+
+        .station-item-name {
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
+        .station-item-meta {
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .station-action-btn {
+            min-width: 74px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-dim);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            font-weight: 700;
+        }
+
+        .station-item.active .station-action-btn {
+            border-color: rgba(211, 47, 47, 0.5);
+            color: #ffb3b3;
         }
 
         /* Action Buttons */
@@ -512,41 +595,6 @@
             font-size: 14px;
         }
 
-        .map-panel {
-            padding: 0 20px 20px;
-            background: linear-gradient(180deg, var(--bg) 0%, var(--surface) 100%);
-        }
-
-        .map-card {
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            overflow: hidden;
-            background: #111111;
-        }
-
-        .map-title {
-            padding: 12px 14px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.4px;
-            color: var(--text-dim);
-            border-bottom: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        #routeMap {
-            height: 300px;
-            width: 100%;
-        }
-
-        .map-note {
-            padding: 10px 14px 12px;
-            font-size: 12px;
-            color: var(--text-dim);
-            border-top: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.02);
-        }
-
         .actions-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -676,7 +724,7 @@
             }
 
             .current-station {
-                padding: 14px 16px 12px;
+                padding: 14px 16px 8px;
             }
 
             .station-status {
@@ -686,57 +734,34 @@
 
             .station-name {
                 font-size: 22px;
-                margin-bottom: 10px;
+                margin-bottom: 8px;
             }
 
-            .distance-info {
-                gap: 8px;
-                margin-bottom: 10px;
-            }
-
-            .distance {
-                font-size: 32px;
-            }
-
-            .distance-unit {
-                font-size: 15px;
-            }
-
-            .direction-hint {
+            .station-subtitle {
                 font-size: 13px;
                 line-height: 1.35;
-                padding: 8px 10px;
                 margin-bottom: 10px;
             }
 
-            .cue-panel {
-                margin-top: 8px;
-                padding: 10px 12px;
+            .active-stop-card,
+            .station-list-card {
+                padding: 14px;
             }
 
-            .cue-text {
+            .current-target-name {
+                font-size: 20px;
+            }
+
+            .current-target-meta {
                 font-size: 14px;
-                line-height: 1.3;
             }
 
-            .cue-distance {
-                margin-top: 4px;
+            .station-item-name {
+                font-size: 14px;
+            }
+
+            .station-item-meta {
                 font-size: 12px;
-            }
-
-            .map-panel {
-                padding: 0 16px 10px;
-            }
-
-            .map-title {
-                padding: 8px 10px;
-                font-size: 10px;
-            }
-
-            .map-note {
-                padding: 7px 10px 8px;
-                font-size: 10px;
-                line-height: 1.25;
             }
 
             .actions {
@@ -774,7 +799,7 @@
     <!-- Setup Screen -->
     <div id="setupScreen" class="setup-screen container">
         <h1>CaBi Navigator</h1>
-        <div class="version-badge">Build 2026-04-16 13:18 EDT</div>
+        <div class="version-badge">Build 2026-04-17 09:08 EDT</div>
 
         <div class="home-hero">
             <div class="hero-label">Ready To Roll</div>
@@ -790,7 +815,7 @@
                         <option value="day17">Day 17 - Dupont / Adams Morgan / U Street loop (44 stations)</option>
                         <option value="day05">Day 05 demo - Franconia / Springfield (4 stations)</option>
                     </select>
-                    <div class="helper-text">Built-in micro demo or a real exported day route with live Google rerouting when your key is present.</div>
+                    <div class="helper-text">Load a route, then hand each stop off to Google Maps one station at a time.</div>
                 </div>
             </div>
 
@@ -838,7 +863,7 @@
     <!-- Navigation Screen -->
     <div id="navScreen" style="display: none;" class="container">
         <div class="header">
-            <div class="route-title">Route Progress</div>
+            <div class="route-title">Route Controller</div>
             <div class="progress-stats">
                 <div class="stat">
                     Station
@@ -851,51 +876,33 @@
             </div>
         </div>
 
-        <div class="gps-status" id="gpsStatus"></div>
-
         <div class="current-station">
-            <div class="station-status" id="stationStatus">NAVIGATING TO</div>
+            <div class="station-status" id="stationStatus">ACTIVE TARGET</div>
             <div class="station-name" id="stationName">Loading...</div>
-            <div class="distance-info">
-                <div class="distance" id="distance">--</div>
-                <div class="distance-unit">m</div>
-            </div>
-            <div class="direction-hint" id="directionHint" style="display: none;">
-                Continue straight
-            </div>
-            <div class="cue-panel" id="cuePanel" style="display: none;">
-                <div class="cue-label">Next Cue</div>
-                <div class="cue-text" id="cueText">Turn right</div>
-                <div class="cue-distance" id="cueDistance">120 m away</div>
-            </div>
-        </div>
+            <div class="station-subtitle" id="directionHint">Open this stop in Google Maps, ride there, then come back here to mark it complete and advance to the next station.</div>
 
-        <div class="map-panel">
-            <div class="map-card">
-                <div class="map-title">Route Map</div>
-                <div id="routeMap"></div>
-                <div class="map-note">Filled dots = completed stations. Red dot = current target. Blue dot = your current position.</div>
+            <div class="active-stop-card">
+                <div class="current-target-label">Current Stop</div>
+                <div class="current-target-name" id="currentTargetName">17th & P St NW</div>
+                <div class="current-target-meta" id="currentTargetMeta">Stop 1 of 44. Google Maps handles the turn-by-turn for each leg.</div>
+            </div>
+
+            <div class="station-list-card">
+                <div class="station-list-label">Station List</div>
+                <div class="station-list" id="stationList"></div>
             </div>
         </div>
 
         <div class="actions">
-            <div class="sim-panel" id="simPanel">
-                <div class="sim-title">Test Controls</div>
-                <div class="sim-actions">
-                    <button class="btn btn-secondary btn-small" id="simNextCueBtn">Jump To Next Cue</button>
-                    <button class="btn btn-secondary btn-small" id="simNearStationBtn">Jump Near Station</button>
-                    <button class="btn btn-secondary btn-small" id="simOffRouteBtn">Force Off Route</button>
-                </div>
-            </div>
             <div class="actions-grid">
-                <button class="btn btn-primary" id="beginRouteBtn">
-                    Start Route
+                <button class="btn btn-primary" id="openMapsBtn">
+                    Open In Google Maps
                 </button>
                 <button class="btn btn-secondary" id="pauseRouteBtn">
                     Pause Route
                 </button>
                 <button class="btn btn-primary" id="dockedBtn">
-                    ✓ DOCKED AT STATION
+                    ✓ Docked And Next
                 </button>
                 <button class="btn btn-secondary" id="skipStationBtn">
                     Skip (Full/Broken)
@@ -909,64 +916,18 @@
             <div class="modal-header">
                 <div>
                     <div class="modal-title" id="settingsModalTitle">Ride Settings</div>
-                    <div class="modal-subtitle">Voice, routing, simulation, and API settings live here so the main app stays focused on the ride.</div>
+                    <div class="modal-subtitle">This app now manages station sequence and completion. Google Maps handles the actual turn-by-turn for each leg.</div>
                 </div>
                 <button class="modal-close" id="closeSettingsBtn" aria-label="Close settings">×</button>
             </div>
 
             <div class="settings-group">
-                <label>Announce Distance (meters)</label>
-                <input type="number" id="announceDistance" value="50" min="10" max="200">
-            </div>
-
-            <div class="settings-group">
-                <label>Routing Mode</label>
-                <select id="routingMode" class="settings-input">
-                    <option value="google">Google Routes (Live)</option>
-                    <option value="saved">Saved Cues Only</option>
-                </select>
-                <div class="helper-text">Live Google routing is preferred when you provide your own key. Saved cues remain the fallback mode.</div>
-            </div>
-
-            <div class="settings-group">
-                <label>Cue Mode</label>
-                <select id="cueMode" class="settings-input">
-                    <option value="enhanced">Enhanced</option>
-                    <option value="raw">Raw Google</option>
-                </select>
-                <div class="helper-text">Raw Google speaks the returned Google step instructions with minimal app tuning. Enhanced keeps the current filtering and reassurance prompts.</div>
-            </div>
-
-            <div class="settings-group">
-                <label>Google Routes API Key</label>
-                <input type="password" id="googleRoutesApiKey" class="settings-input" placeholder="Paste your own Google Routes key">
-                <div class="helper-text">Stored only in this browser via localStorage. Restrict the key to Routes API and this site origin.</div>
-            </div>
-
-            <div class="settings-group">
-                <label>Voice</label>
-                <select id="voiceSelect" class="settings-input">
-                    <option value="">Default device voice</option>
-                </select>
-                <div class="helper-text">Limited to practical GB/US voices when available on this device.</div>
-            </div>
-
-            <div class="settings-group">
-                <label>Speech Rate</label>
-                <input type="number" id="speechRate" class="settings-input" value="1.0" min="0.7" max="1.3" step="0.05">
-                <div class="helper-text">Lower values sound calmer and are usually easier to follow in-ear.</div>
-            </div>
-
-            <div class="settings-group">
-                <div class="checkbox-row">
-                    <input type="checkbox" id="simulationMode">
-                    <label for="simulationMode" style="margin-bottom: 0;">Simulation Mode</label>
-                </div>
-                <div class="helper-text">Use test controls instead of live GPS so you can validate turn prompts and recalculation without riding.</div>
+                <label>Current Model</label>
+                <div class="helper-text">Load route -> Open active stop in Google Maps -> Docked And Next -> repeat.</div>
             </div>
 
             <div class="home-actions">
-                <button class="btn btn-secondary" id="testVoiceBtn">Test Voice</button>
+                <button class="btn btn-secondary" id="modalStartOverBtn">Start Over Route</button>
                 <button class="btn btn-primary" id="closeSettingsPrimaryBtn">Done</button>
             </div>
         </div>
@@ -1172,74 +1133,10 @@
         }
 
         function loadRoutingSettings() {
-            const savedRoutingMode = localStorage.getItem(LOCAL_STORAGE_KEYS.routingMode);
-            const savedCueMode = localStorage.getItem(LOCAL_STORAGE_KEYS.cueMode);
-            const savedGoogleKey = localStorage.getItem(LOCAL_STORAGE_KEYS.googleKey);
-            const savedVoiceName = localStorage.getItem(LOCAL_STORAGE_KEYS.voiceName);
-            const savedSpeechRate = localStorage.getItem(LOCAL_STORAGE_KEYS.speechRate);
-            const savedAnnounceDistance = localStorage.getItem(LOCAL_STORAGE_KEYS.announceDistance);
-            const savedSimulationMode = localStorage.getItem(LOCAL_STORAGE_KEYS.simulationMode);
-
-            if (savedRoutingMode) {
-                routingMode = savedRoutingMode;
-            }
-            if (savedCueMode) {
-                cueMode = savedCueMode;
-            }
-            if (savedGoogleKey) {
-                googleRoutesApiKey = savedGoogleKey;
-            }
-            if (savedVoiceName) {
-                selectedVoiceName = savedVoiceName;
-            }
-            if (savedSpeechRate) {
-                const parsedSpeechRate = parseFloat(savedSpeechRate);
-                if (!Number.isNaN(parsedSpeechRate)) {
-                    speechRate = parsedSpeechRate;
-                }
-            }
-            if (savedAnnounceDistance) {
-                const parsedAnnounceDistance = parseInt(savedAnnounceDistance, 10);
-                if (!Number.isNaN(parsedAnnounceDistance)) {
-                    announceDistance = parsedAnnounceDistance;
-                }
-            }
-            if (savedSimulationMode) {
-                simulationMode = savedSimulationMode === 'true';
-            }
-
-            document.getElementById('routingMode').value = routingMode;
-            document.getElementById('cueMode').value = cueMode;
-            document.getElementById('googleRoutesApiKey').value = googleRoutesApiKey;
-            document.getElementById('speechRate').value = speechRate.toFixed(2).replace(/0$/, '').replace(/\.$/, '.0');
-            document.getElementById('announceDistance').value = announceDistance;
-            document.getElementById('simulationMode').checked = simulationMode;
+            return;
         }
 
         function saveRoutingSettings() {
-            routingMode = document.getElementById('routingMode').value;
-            cueMode = document.getElementById('cueMode').value;
-            googleRoutesApiKey = document.getElementById('googleRoutesApiKey').value.trim();
-            selectedVoiceName = document.getElementById('voiceSelect').value;
-            speechRate = parseFloat(document.getElementById('speechRate').value) || 1.0;
-            announceDistance = parseInt(document.getElementById('announceDistance').value, 10) || 50;
-            simulationMode = document.getElementById('simulationMode').checked;
-
-            localStorage.setItem(LOCAL_STORAGE_KEYS.routingMode, routingMode);
-            localStorage.setItem(LOCAL_STORAGE_KEYS.cueMode, cueMode);
-            if (googleRoutesApiKey) {
-                localStorage.setItem(LOCAL_STORAGE_KEYS.googleKey, googleRoutesApiKey);
-            } else {
-                localStorage.removeItem(LOCAL_STORAGE_KEYS.googleKey);
-            }
-            if (selectedVoiceName) {
-                localStorage.setItem(LOCAL_STORAGE_KEYS.voiceName, selectedVoiceName);
-            } else {
-                localStorage.removeItem(LOCAL_STORAGE_KEYS.voiceName);
-            }
-            localStorage.setItem(LOCAL_STORAGE_KEYS.speechRate, speechRate.toString());
-            localStorage.setItem(LOCAL_STORAGE_KEYS.announceDistance, announceDistance.toString());
-            localStorage.setItem(LOCAL_STORAGE_KEYS.simulationMode, simulationMode ? 'true' : 'false');
             updateHomeSummary();
         }
 
@@ -1655,13 +1552,13 @@
             const select = document.getElementById('demoRouteSelect');
             const selectedOption = select.options[select.selectedIndex];
             const label = selectedOption && selectedOption.value ? selectedOption.textContent : 'No route selected';
-            const routingSummary = isGoogleRoutingEnabled() ? 'Live Google rerouting ready.' : 'Saved cues active until a Google key is added.';
-            const cueSummary = cueMode === 'raw' ? 'Raw Google cues.' : 'Enhanced cues.';
+            const routingSummary = 'Google Maps handles navigation for each station.';
+            const cueSummary = routeSession ? 'Resume available.' : 'Check stations off as you go.';
 
             document.getElementById('heroRouteName').textContent = label;
             document.getElementById('heroRouteSummary').textContent = `${routingSummary} ${cueSummary}`;
             document.getElementById('navSummary').style.display = 'block';
-            document.getElementById('navSummary').textContent = `${announceDistance} m announce distance • ${cueMode === 'raw' ? 'raw google' : 'enhanced'}${simulationMode ? ' • simulation on' : ''}`;
+            document.getElementById('navSummary').textContent = 'Open next stop in Google Maps from the route screen.';
         }
 
         function openSettingsModal() {
@@ -1694,6 +1591,90 @@
         function showNavScreen() {
             document.getElementById('setupScreen').style.display = 'none';
             document.getElementById('navScreen').style.display = 'flex';
+        }
+
+        function getActiveStation() {
+            return route[currentStationIndex] || null;
+        }
+
+        function buildGoogleMapsUrls(station) {
+            const destination = `${station.lat},${station.lng}`;
+            const label = encodeURIComponent(station.name);
+            return {
+                iosApp: `comgooglemaps://?daddr=${destination}&directionsmode=bicycling&q=${label}`,
+                iosWeb: `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=bicycling`,
+                web: `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=bicycling`
+            };
+        }
+
+        function openActiveStationInGoogleMaps() {
+            const station = getActiveStation();
+            if (!station) {
+                showStatus('No active station to open', 2000);
+                return;
+            }
+
+            const urls = buildGoogleMapsUrls(station);
+            const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            if (isiOS) {
+                window.location.href = urls.iosApp;
+                setTimeout(() => {
+                    window.location.href = urls.iosWeb;
+                }, 700);
+            } else {
+                window.open(urls.web, '_blank');
+            }
+        }
+
+        function renderStationList() {
+            const listEl = document.getElementById('stationList');
+            if (!listEl) {
+                return;
+            }
+
+            listEl.innerHTML = '';
+            route.forEach((station, index) => {
+                const item = document.createElement('div');
+                item.className = `station-item${index < currentStationIndex ? ' completed' : ''}${index === currentStationIndex ? ' active' : ''}`;
+
+                const marker = document.createElement('div');
+                marker.className = 'station-marker';
+                marker.textContent = index < currentStationIndex ? '✓' : index + 1;
+
+                const details = document.createElement('div');
+                const name = document.createElement('div');
+                name.className = 'station-item-name';
+                name.textContent = station.name;
+                const meta = document.createElement('div');
+                meta.className = 'station-item-meta';
+                meta.textContent =
+                    index < currentStationIndex
+                        ? 'Completed'
+                        : index === currentStationIndex
+                            ? 'Active stop'
+                            : 'Upcoming';
+                details.appendChild(name);
+                details.appendChild(meta);
+
+                const action = document.createElement('button');
+                action.className = 'station-action-btn';
+                action.type = 'button';
+                if (index < currentStationIndex) {
+                    action.textContent = 'Done';
+                    action.disabled = true;
+                } else if (index === currentStationIndex) {
+                    action.textContent = 'Active';
+                    action.addEventListener('click', openActiveStationInGoogleMaps);
+                } else {
+                    action.textContent = 'Queued';
+                    action.disabled = true;
+                }
+
+                item.appendChild(marker);
+                item.appendChild(details);
+                item.appendChild(action);
+                listEl.appendChild(item);
+            });
         }
 
         function loadRoutePayloadIntoState(parsed, sourceKey = '') {
@@ -2005,18 +1986,16 @@
         }
 
         function updateActionButtons() {
-            const beginRouteBtn = document.getElementById('beginRouteBtn');
+            const openMapsBtn = document.getElementById('openMapsBtn');
             const dockedBtn = document.getElementById('dockedBtn');
             const skipStationBtn = document.getElementById('skipStationBtn');
             const pauseRouteBtn = document.getElementById('pauseRouteBtn');
-            const simPanel = document.getElementById('simPanel');
             const routeIsActive = navigationStarted && currentStationIndex < route.length;
 
-            beginRouteBtn.style.display = navigationStarted || currentStationIndex >= route.length ? 'none' : 'block';
+            openMapsBtn.disabled = !routeIsActive;
             pauseRouteBtn.style.display = routeIsActive ? 'block' : 'none';
             dockedBtn.disabled = !routeIsActive;
             skipStationBtn.disabled = !routeIsActive;
-            simPanel.style.display = simulationMode ? 'block' : 'none';
         }
 
         function setSimulatedPosition(lat, lng, message = '') {
@@ -2139,40 +2118,17 @@
                 currentStationIndex = 0;
                 completedStations = 0;
                 resetLegState();
-                hasFitMap = false;
                 navigationStarted = false;
                 initialStartPromptSpoken = false;
                 stopGpsWatch();
                 synth.cancel();
 
                 showNavScreen();
-                ensureMap();
-                refreshMap(true);
+                navigationStarted = true;
+                updateDisplay();
                 updateActionButtons();
                 persistSession(false);
-
-                if (simulationMode) {
-                    const startPoint = routeTrack[0] || route[0];
-                    if (startPoint) {
-                        setSimulatedPosition(startPoint.lat, startPoint.lng, 'Simulation mode active');
-                    }
-                    document.getElementById('gpsStatus').classList.remove('inactive');
-                    updateDisplay();
-                } else if ('geolocation' in navigator) {
-                    // Request GPS
-                    watchId = navigator.geolocation.watchPosition(
-                        onPositionUpdate,
-                        onPositionError,
-                        {
-                            enableHighAccuracy: true,
-                            maximumAge: 0,
-                            timeout: 5000
-                        }
-                    );
-                    updateDisplay();
-                } else {
-                    showStatus('Geolocation not supported on this device', 3000);
-                }
+                showStatus('Route loaded. Open the active station in Google Maps when you are ready.', 2500);
             } catch (e) {
                 showStatus('Invalid route data. Check the JSON and try again.', 3000);
             }
@@ -2192,45 +2148,18 @@
             completedStations = routeSession.completedStations || 0;
             navigationStarted = true;
             initialStartPromptSpoken = false;
-            simulationMode = routeSession.simulationMode ?? simulationMode;
-            document.getElementById('simulationMode').checked = simulationMode;
-            announceDistance = routeSession.announceDistance || announceDistance;
-            document.getElementById('announceDistance').value = announceDistance;
             document.getElementById('routeInput').value = JSON.stringify(routeSession.routeData, null, 2);
             if (routeSession.routeSourceKey) {
                 document.getElementById('demoRouteSelect').value = routeSession.routeSourceKey;
             }
             resetLegState();
-            hasFitMap = false;
 
             showNavScreen();
-            ensureMap();
-            refreshMap(true);
+            updateDisplay();
             updateActionButtons();
 
-            if (simulationMode) {
-                const anchor = route[currentStationIndex] || route[route.length - 1];
-                if (anchor) {
-                    setSimulatedPosition(anchor.lat, anchor.lng, 'Resumed saved simulation session');
-                }
-                document.getElementById('gpsStatus').classList.remove('inactive');
-                updateDisplay();
-            } else if ('geolocation' in navigator) {
-                stopGpsWatch();
-                watchId = navigator.geolocation.watchPosition(
-                    onPositionUpdate,
-                    onPositionError,
-                    {
-                        enableHighAccuracy: true,
-                        maximumAge: 0,
-                        timeout: 5000
-                    }
-                );
-                updateDisplay();
-            }
-
             persistSession(false);
-            refreshCurrentLegRoute({ announceLoaded: true });
+            showStatus('Session resumed', 2000);
         }
 
         function pauseNavigation() {
@@ -2238,7 +2167,6 @@
                 return;
             }
 
-            synth.cancel();
             navigationStarted = false;
             stopGpsWatch();
             persistSession(true);
@@ -2247,7 +2175,6 @@
         }
 
         function startOverRoute() {
-            synth.cancel();
             stopGpsWatch();
             clearRouteSession();
             navigationStarted = false;
@@ -2260,21 +2187,10 @@
             routeTrack = [];
             routeSourceKey = '';
             resetLegState();
-            hasFitMap = false;
-            if (routeLine) {
-                routeLine.remove();
-                routeLine = null;
-            }
-            stationMarkers.forEach(marker => marker.remove());
-            stationMarkers = [];
-            if (userMarker) {
-                userMarker.remove();
-                userMarker = null;
-            }
             document.getElementById('currentIndex').textContent = '1';
             document.getElementById('completedCount').textContent = '0';
             document.getElementById('totalStations').textContent = '0';
-            document.querySelector('.route-title').textContent = 'Route Progress';
+            document.querySelector('.route-title').textContent = 'Route Controller';
             showHomeScreen();
         }
 
@@ -2395,137 +2311,32 @@
 
         // Update display
         function updateDisplay() {
-            if (currentStationIndex >= route.length) return;
+            const station = getActiveStation();
+            const hasRoute = route.length > 0;
 
-            const station = route[currentStationIndex];
-            const hasGps = Boolean(userPosition);
-            const distance = hasGps ? Math.round(getDistance(
-                userPosition.lat,
-                userPosition.lng,
-                station.lat,
-                station.lng
-            )) : null;
-
-            const bearing = hasGps ? getBearing(
-                userPosition.lat,
-                userPosition.lng,
-                station.lat,
-                station.lng
-            ) : null;
-            const direction = hasGps ? getDirection(bearing) : 'ahead';
-            const progress = navigationStarted && canRunOffRouteCheck() ? getTrackProgress() : null;
-
-            // Update UI
-            document.getElementById('stationName').textContent = station.name;
-            document.getElementById('distance').textContent = hasGps ? distance : '--';
-            document.getElementById('currentIndex').textContent = currentStationIndex + 1;
+            document.getElementById('currentIndex').textContent = hasRoute ? Math.min(currentStationIndex + 1, route.length) : '0';
             document.getElementById('completedCount').textContent = completedStations;
-            document.getElementById('stationStatus').textContent = navigationStarted ? 'NAVIGATING TO' : 'READY TO START';
-            document.getElementById('directionHint').textContent =
-                navigationStarted
-                    ? `Station ${direction}`
-                    : (hasGps
-                        ? `Tap Start. First station is ${distance} m ${direction}.`
-                        : 'Waiting for GPS so Start can guide you to station 1.');
-            document.getElementById('directionHint').style.display = 'block';
+            document.getElementById('totalStations').textContent = route.length;
 
-            const activeCue = getActiveCue();
-            const cuePanel = document.getElementById('cuePanel');
-            if (!navigationStarted) {
-                cuePanel.style.display = 'none';
+            if (!hasRoute || !station) {
+                document.getElementById('stationStatus').textContent = 'ROUTE READY';
+                document.getElementById('stationName').textContent = routeName || 'Load a route';
+                document.getElementById('directionHint').textContent = 'Choose a route to see the station checklist and open the next stop in Google Maps.';
+                document.getElementById('currentTargetName').textContent = 'No active stop';
+                document.getElementById('currentTargetMeta').textContent = 'Load a route to begin.';
+                renderStationList();
                 updateActionButtons();
-                refreshMap(false);
                 return;
             }
 
-            if (activeCue && !isRecalculating) {
-                const cueDistance = Math.round(
-                    progress && progress.offRouteDistance <= offRouteThreshold
-                        ? Math.max(0, activeCue.distance_m - progress.progressDistance)
-                        : getDistance(
-                            userPosition.lat,
-                            userPosition.lng,
-                            activeCue.lat,
-                            activeCue.lng
-                        )
-                );
-                document.getElementById('cueText').textContent = activeCue.text;
-                document.getElementById('cueDistance').textContent = `${cueDistance} m away`;
-                cuePanel.style.display = 'block';
+            document.getElementById('stationStatus').textContent = currentStationIndex === route.length - 1 ? 'FINAL TARGET' : 'ACTIVE TARGET';
+            document.getElementById('stationName').textContent = station.name;
+            document.getElementById('directionHint').textContent = 'Open this station in Google Maps, ride there, then come back here and mark it complete to advance.';
+            document.getElementById('currentTargetName').textContent = station.name;
+            document.getElementById('currentTargetMeta').textContent = `Stop ${currentStationIndex + 1} of ${route.length}. Tap Open in Google Maps for bike navigation, then Docked And Next when you arrive.`;
 
-                if (!isRawCueMode() && shouldSpeakReassurance(activeCue, cueDistance)) {
-                    speak(buildReassurancePrompt(activeCue, cueDistance));
-                    lastReassuranceAt = Date.now();
-                    lastReassuranceCueId = activeCue.id;
-                    lastReassuranceRemaining = cueDistance;
-                } else if (!isRawCueMode() && cueDistance <= cuePreviewDistance && shouldSpeakCuePreview(activeCue) && !announcedCuePreviewIds.has(activeCue.id)) {
-                    speak(formatCuePreview(activeCue, cueDistance));
-                    announcedCuePreviewIds.add(activeCue.id);
-                } else if (cueDistance <= (isRawCueMode() ? cueNowDistance : getCueNowThreshold(activeCue)) && !announcedCueNowIds.has(activeCue.id)) {
-                    speak(activeCue.text);
-                    announcedCueNowIds.add(activeCue.id);
-                }
-            } else {
-                cuePanel.style.display = 'none';
-            }
-
-            if (progress && progress.offRouteDistance > offRouteThreshold) {
-                const now = Date.now();
-                if (!isRecalculating) {
-                    speak('Off route. Recalculating to the next station.');
-                    showStatus('⚠️ Off route - switching to direct guidance', 4000);
-                    lastOffRouteWarningAt = now;
-                }
-                isRecalculating = true;
-                cuePanel.style.display = 'none';
-                speakDirectGuidance(station, distance, direction);
-            } else if (isRecalculating && lastOffRouteWarningAt > 0 && progress && progress.offRouteDistance <= rejoinThreshold) {
-                const now = Date.now();
-                isRecalculating = false;
-                if (now - lastRejoinAnnouncementAt > 5000) {
-                    speak('Back on route.');
-                    showStatus('Back on route', 2000);
-                    lastRejoinAnnouncementAt = now;
-                }
-                lastOffRouteWarningAt = 0;
-                hasSpokenDirectGuidanceThisOffRoute = false;
-            }
-
-            // Audio announcements
-            if (!isRecalculating && distance <= announceDistance && !hasAnnounced) {
-                speak(`In ${distance} meters, CaBi station ${direction}. ${station.name}`);
-                hasAnnounced = true;
-            }
-
-            // Check if passed station (distance increasing after getting close)
-            if (hasAnnounced && distance > lastDistance + 20 && distance > announceDistance) {
-                speak(`You passed the station. ${station.name} is now behind you.`);
-                showStatus('⚠️ Station passed - dock or skip to continue', 4000);
-            }
-
-            lastDistance = distance;
-        }
-
-        function beginRoute() {
-            if (!route || route.length === 0 || currentStationIndex >= route.length) {
-                showStatus('Load a route first', 2000);
-                return;
-            }
-
-            blurActiveInput();
-            navigationStarted = true;
-            initialStartPromptSpoken = false;
-            hasAnnounced = false;
-            lastDistance = Infinity;
-            announcedCuePreviewIds = new Set();
-            announcedCueNowIds = new Set();
-            hasSpokenDirectGuidanceThisOffRoute = false;
-            isRecalculating = false;
+            renderStationList();
             updateActionButtons();
-            updateDisplay();
-            speakInitialStartPrompt();
-            refreshCurrentLegRoute({ announceLoaded: true });
-            persistSession(false);
         }
 
         // Confirm docked
@@ -2533,7 +2344,6 @@
             if (currentStationIndex >= route.length) return;
 
             const station = route[currentStationIndex];
-            speak(`Docked at ${station.name}. Good job.`);
             showStatus('✓ Station confirmed', 2000);
 
             completedStations++;
@@ -2541,8 +2351,6 @@
             resetLegState();
 
             if (currentStationIndex >= route.length) {
-                // Route complete
-                speak('Route complete. All stations visited.');
                 showStatus('🎉 Route Complete!', 3000);
                 updateActionButtons();
                 clearRouteSession();
@@ -2550,19 +2358,10 @@
                     startOverRoute();
                 }, 2000);
             } else {
-                refreshMap(false);
                 updateDisplay();
-                refreshCurrentLegRoute();
                 persistSession(false);
                 setTimeout(() => {
-                    const nextStation = route[currentStationIndex];
-                    const nextCue = getActiveCue();
-                    if (nextCue) {
-                        speak(`Next station: ${nextStation.name}. ${formatCuePreview(nextCue, Math.max(10, Math.round((nextCue.distance_m || 0) - (getTrackProgress()?.progressDistance || 0))))}`);
-                    } else {
-                        const nextBearing = getBearing(userPosition.lat, userPosition.lng, nextStation.lat, nextStation.lng);
-                        speak(`Next station: ${nextStation.name}. Head ${getDirection(nextBearing)}.`);
-                    }
+                    openActiveStationInGoogleMaps();
                 }, 1500);
             }
         }
@@ -2571,58 +2370,36 @@
         function skipStation() {
             if (currentStationIndex >= route.length) return;
 
-            const station = route[currentStationIndex];
-            speak(`Skipping ${station.name}`);
             showStatus('Station skipped', 2000);
 
             currentStationIndex++;
             resetLegState();
 
             if (currentStationIndex >= route.length) {
-                speak('Route complete');
                 showStatus('Route Complete', 3000);
                 updateActionButtons();
                 clearRouteSession();
             } else {
-                refreshMap(false);
                 updateDisplay();
-                refreshCurrentLegRoute();
                 persistSession(false);
+                setTimeout(() => {
+                    openActiveStationInGoogleMaps();
+                }, 1200);
             }
         }
-
-        // Update display periodically
-        setInterval(() => {
-            if (userPosition && currentStationIndex < route.length) {
-                updateDisplay();
-            }
-        }, 1000);
 
         document.getElementById('startNavigationBtn').addEventListener('click', startNavigation);
         document.getElementById('resumeSessionBtn').addEventListener('click', resumeSavedSession);
         document.getElementById('startOverBtn').addEventListener('click', startOverRoute);
+        document.getElementById('openMapsBtn').addEventListener('click', openActiveStationInGoogleMaps);
         document.getElementById('pauseRouteBtn').addEventListener('click', pauseNavigation);
-        document.getElementById('beginRouteBtn').addEventListener('click', beginRoute);
         document.getElementById('dockedBtn').addEventListener('click', confirmDocked);
         document.getElementById('skipStationBtn').addEventListener('click', skipStation);
-        document.getElementById('simNextCueBtn').addEventListener('click', jumpToNextCue);
-        document.getElementById('simNearStationBtn').addEventListener('click', jumpNearStation);
-        document.getElementById('simOffRouteBtn').addEventListener('click', forceOffRoute);
+        document.getElementById('modalStartOverBtn').addEventListener('click', startOverRoute);
         document.getElementById('settingsToggleBtn').addEventListener('click', openSettingsModal);
         document.getElementById('openSettingsBtn').addEventListener('click', openSettingsModal);
         document.getElementById('closeSettingsBtn').addEventListener('click', closeSettingsModal);
         document.getElementById('closeSettingsPrimaryBtn').addEventListener('click', closeSettingsModal);
-        document.getElementById('routingMode').addEventListener('change', saveRoutingSettings);
-        document.getElementById('cueMode').addEventListener('change', saveRoutingSettings);
-        document.getElementById('googleRoutesApiKey').addEventListener('change', saveRoutingSettings);
-        document.getElementById('googleRoutesApiKey').addEventListener('input', saveRoutingSettings);
-        document.getElementById('voiceSelect').addEventListener('change', saveRoutingSettings);
-        document.getElementById('speechRate').addEventListener('change', saveRoutingSettings);
-        document.getElementById('speechRate').addEventListener('input', saveRoutingSettings);
-        document.getElementById('announceDistance').addEventListener('change', saveRoutingSettings);
-        document.getElementById('announceDistance').addEventListener('input', saveRoutingSettings);
-        document.getElementById('simulationMode').addEventListener('change', saveRoutingSettings);
-        document.getElementById('testVoiceBtn').addEventListener('click', testVoiceSample);
         document.getElementById('settingsModalBackdrop').addEventListener('click', (event) => {
             if (event.target.id === 'settingsModalBackdrop') {
                 closeSettingsModal();
